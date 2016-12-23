@@ -14,8 +14,14 @@ output: html_document
 install.packages("gdata")
 library(gdata)
 
+perldir <- Sys.which("perl")
+
+# one last try
+if (perldir == "" & .Platform$OS.type == "windows")
+  perldir <- "C:\\Perl64\\bin\\perl.exe"
+
 fc <- "crime.xls" 
-dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl="C:\\Perl64\\bin\\perl.exe")
+dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir)
 ```
 
 ###Verificar se é necessário proceder a quaisquer clean-up dos dados e/ou etapas de pré-processamento.
