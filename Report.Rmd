@@ -1,14 +1,31 @@
 ---
 title: "Report"
-author: "F·bio Teixeira, Miguel Ferreira, Vanessa Silva"
+author: "F√°bio Teixeira, Miguel Ferreira, Vanessa Silva"
 date: "20 de Dezembro de 2016"
 output: html_document
 ---
 
 # Primeira tarefa:
 
-##ImportaÁ„o dos dados e clean-up
+##Importa√ß√£o dos dados e clean-up
+
+###Estabelecimento do *working directory*
+
+Fazer download do ficheiro "crime.xls" para o diret√≥rio em que se vai trabalhar. Alternativamente, se se quiser mudar o diret√≥rio corrente, fazer:
+
+```{r}
+setwd(dir)
+```
+
+E para ver o diret√≥rio atual:
+
+```{r}
+getwd()
+```
+
 ###Importar os dados num formato R adequado:
+
+Nota: Se n√£o tiver o Perl instalado no Windows, fazer download [aqui](http://www.activestate.com/activeperl/downloads).
 
 ```{r}
 install.packages("gdata")
@@ -16,15 +33,11 @@ library(gdata)
 
 perldir <- Sys.which("perl")
 
-# one last try
-if (perldir == "" & .Platform$OS.type == "windows")
-  perldir <- "C:\\Perl64\\bin\\perl.exe"
-
 fc <- "crime.xls" 
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir)
 ```
 
-###Verificar se È necess·rio proceder a quaisquer clean-up dos dados e/ou etapas de prÈ-processamento.
+###Verificar se √© necess√°rio proceder a quaisquer clean-up dos dados e/ou etapas de pr√©-processamento.
 
 ```{r}
 
@@ -33,8 +46,8 @@ dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir)
 
 # Segunda tarefa:
 
-##An·lise exploratÛria dos dados
-###Resumir e visualizar os dados em formas que achamos ˙teis para a polÌcia (pensar em questıes interessantes que a polÌcia possa ter sobre os dados e fornecer as respostas ou usar sum·rios textuais ou visualizaÁ„o dos dados).
+##An√°lise explorat√≥ria dos dados
+###Resumir e visualizar os dados em formas que achamos √∫teis para a pol√≠cia (pensar em quest√µes interessantes que a pol√≠cia possa ter sobre os dados e fornecer as respostas ou usar sum√°rios textuais ou visualiza√ß√£o dos dados).
 
 ```{r}
 
@@ -44,16 +57,16 @@ dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir)
 # Terceira tarefa:
 
 ##Modelagem preditiva
-###Definir uma tarefa de pevis„o que pode ajudar a polÌcia a responder ao seu objetivo operacional. 
+###Definir uma tarefa de pevis√£o que pode ajudar a pol√≠cia a responder ao seu objetivo operacional. 
 
 ```{r}
 
 ```
 
-###Usar os dados disponÌveis para a selecionar e obter um bom modelo para esta tarefa.
+###Usar os dados dispon√≠veis para a selecionar e obter um bom modelo para esta tarefa.
 
 ```{r}
 
 ```
 
-###Apresentar uma justificaÁ„o para o modelo sugerido.
+###Apresentar uma justifica√ß√£o para o modelo sugerido.
