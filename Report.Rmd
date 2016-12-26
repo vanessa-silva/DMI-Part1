@@ -28,8 +28,17 @@ getwd()
 Nota: Se não tiver o Perl instalado no Windows, fazer download [aqui](http://www.activestate.com/activeperl/downloads).
 
 ```{r}
+#Instalar os pacotes necessários
 install.packages("gdata")
+install.packages("lubridate")
+install.packages("xts")
+install.packages("dplyr")
+
+#Carregar os pacotes
 library(gdata)
+library(lubridate)
+library(xts)
+library(dplyr)
 
 perldir <- Sys.which("perl")
 
