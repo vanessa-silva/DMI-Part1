@@ -92,12 +92,12 @@ We have 3 options:
 
 - Remove lines containing invalid data.
 - Substitute invalid cells by a central measure of the cell.
-- Substitute invaled cells by an average over the k-nearest neighbours of its line on the data set.
+- Substitute invalid cells by an average over the k-nearest neighbours of its line on the data set.
 
 #Second task:
 
 ##Data exploratory analysis
-###Summarize and visualize the data in ways that we find useful for the police (look for interesting questions the police may have about the data and provide the answers, or use textual summaries or data visualization).
+Summarize and visualize the data in ways that we find useful for the police (look for interesting questions the police may have about the data and provide the answers, or use textual summaries or data visualization).
 
 ```{r}
 
