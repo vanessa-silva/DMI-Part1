@@ -5,36 +5,36 @@ date: "20 de Dezembro de 2016"
 output: html_document
 ---
 
-# Primeira tarefa:
+#First task:
 
-##Importação dos dados e clean-up
+##Data import and clean-up
 
-###Estabelecimento do *working directory*
+###Setting the *working directory*
 
-Fazer download do ficheiro "crime.xls" para o diretório em que se vai trabalhar. Alternativamente, se se quiser mudar o diretório corrente, fazer:
+Download the file "crime.xls" to the directory where you are going to work. Alternatively, if you want to change the current directory, do:
 
 ```{r}
 setwd(dir)
 ```
 
-E para ver o diretório atual:
+And to view the current directory:
 
 ```{r}
 getwd()
 ```
 
-###Importar os dados num formato R adequado:
+###Import the data into an appropriate R format:
 
-Nota: Se não tiver o Perl instalado no Windows, fazer download [aqui](http://www.activestate.com/activeperl/downloads).
+Note: If you do not have Perl installed on Windows, download it [here](http://www.activestate.com/activeperl/downloads).
 
 ```{r}
-#Instalar os pacotes necessários
+#Install the necessary packages
 install.packages("gdata")
 install.packages("lubridate")
 install.packages("xts")
 install.packages("dplyr")
 
-#Carregar os pacotes
+#Load the packages
 library(gdata)
 library(lubridate)
 library(xts)
@@ -46,36 +46,33 @@ fc <- "crime.xls"
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir)
 ```
 
-###Verificar se é necessário proceder a quaisquer clean-up dos dados e/ou etapas de pré-processamento.
+###Check whether any data clean-up and/or pre-processing steps are necessary.
+```{r}
+
+```
+
+#Second task:
+
+##Data exploratory analysis
+###Summarize and visualize the data in ways that we find useful for the police (look for interesting questions the police may have about the data and provide the answers, or use textual summaries or data visualization).
 
 ```{r}
 
 ```
 
+#Third task:
 
-# Segunda tarefa:
-
-##Análise exploratória dos dados
-###Resumir e visualizar os dados em formas que achamos úteis para a polícia (pensar em questões interessantes que a polícia possa ter sobre os dados e fornecer as respostas ou usar sumários textuais ou visualização dos dados).
-
-```{r}
-
-```
-
-
-# Terceira tarefa:
-
-##Modelagem preditiva
-###Definir uma tarefa de pevisão que pode ajudar a polícia a responder ao seu objetivo operacional. 
+##Predictive modeling
+###Set a prediction task that can help police respond to their operational objective. 
 
 ```{r}
 
 ```
 
-###Usar os dados disponíveis para a selecionar e obter um bom modelo para esta tarefa.
+###Use the available data to select and get a good model for this task.
 
 ```{r}
 
 ```
 
-###Apresentar uma justificação para o modelo sugerido.
+###Give a justification for the suggested model.
