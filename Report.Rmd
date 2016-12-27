@@ -44,7 +44,7 @@ library(stringr)
 perldir <- Sys.which("perl")
 
 fc <- "crime.xls" 
-dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir)
+dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir, na.strings = "UNK")
 ```
 
 ###Check whether any data clean-up and/or pre-processing steps are necessary.
@@ -68,11 +68,11 @@ dat[!grep("^[0-9]{2}$", dat$Hour),]
 Some anomalies were found on the `Beat` column:
 ```{r}
 unique(dat$Beat)
-nrow(dat[dat$Beat == "UNK",])
+nrow(dat[is.na(dat$Beat),])
 ```
 
 ```{r}
-nrow(dat[dat$BlockRange == "UNK",])
+nrow(dat[is.na(dat$BlockRange),])
 ```
 ```{r}
 unique(dat$Type)
