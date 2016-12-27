@@ -13,7 +13,7 @@ output: html_document
 
 Download the file "crime.xls" to the directory where you are going to work. Alternatively, if you want to change the current directory, do:
 
-```{r}
+```{r, eval=FALSE}
 setwd(dir)
 ```
 
@@ -27,7 +27,7 @@ getwd()
 
 Note: If you do not have Perl installed on Windows, download it [here](http://www.activestate.com/activeperl/downloads).
 
-```{r}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 #Install the necessary packages
 install.packages("gdata")
 install.packages("lubridate")
@@ -39,6 +39,7 @@ library(gdata)
 library(lubridate)
 library(xts)
 library(dplyr)
+library(stringr)
 
 perldir <- Sys.which("perl")
 
@@ -47,9 +48,51 @@ dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir)
 ```
 
 ###Check whether any data clean-up and/or pre-processing steps are necessary.
+The Offense Types found on the data set are:
 ```{r}
-
+unique(dat$Offense.Type)
+dat[dat$Offense.Type == 1,]
 ```
+We identified an instance where the `Offense.Type` column does not have a valid value.
+
+All dates have a valid format:
+```{r}
+dat[!grep("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", dat$Date),]
+```
+
+All hours have a valid format:
+```{r}
+dat[dat$Hour < 0 | dat$Hour > 23,]
+dat[!grep("^[0-9]{2}$", dat$Hour),]
+```
+Some anomalies were found on the `Beat` column:
+```{r}
+unique(dat$Beat)
+nrow(dat[dat$Beat == "UNK",])
+```
+
+```{r}
+nrow(dat[dat$BlockRange == "UNK",])
+```
+```{r}
+unique(dat$Type)
+nrow(dat[dat$Type == "-",])
+```
+
+```{r}
+unique(dat$Suffix)
+nrow(dat[dat$Suffix == "-",])
+```
+
+```{r}
+unique(dat$X..offenses)
+```
+
+We have 3 options:
+
+- Remove lines containing invalid data.
+- Substitute invalid cells by a central measure of the cell.
+- Substitute invaled cells by an average over the k-nearest neighbours of its line on the data set.
 
 #Second task:
 
