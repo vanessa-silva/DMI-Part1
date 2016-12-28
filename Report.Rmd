@@ -54,6 +54,11 @@ unique(dat$Offense.Type)
 dat[dat$Offense.Type == 1,]
 ```
 We identified an instance where the `Offense.Type` column does not have a valid value.
+Thus we perform a "cleaning" of the same.
+```{r}
+#dat_clean <- dat[-(dat$Offense.Type == 1), ]
+dat <- subset(dat, dat$Offense.Type != 1)
+```
 
 All dates have a valid format:
 ```{r}
@@ -65,30 +70,31 @@ All hours have a valid format:
 dat[dat$Hour < 0 | dat$Hour > 23,]
 dat[!grep("^[0-9]{2}$", dat$Hour),]
 ```
-Some anomalies were found on the `Beat` column:
+Some anomalies (unknown values) were found on the `Beat` column:
 ```{r}
 unique(dat$Beat)
 nrow(dat[is.na(dat$Beat),])
 ```
-
+Some anomalies (unknown values) were found on the `BlockRange` column:
 ```{r}
 nrow(dat[is.na(dat$BlockRange),])
 ```
+Some anomalies (worthless) were found on the `Type` column:
 ```{r}
 unique(dat$Type)
 nrow(dat[dat$Type == "-",])
 ```
-
+Some anomalies (worthless) were found on the `Suffix` column:
 ```{r}
 unique(dat$Suffix)
 nrow(dat[dat$Suffix == "-",])
 ```
-
+Todas as ofensas foram contadas:
 ```{r}
 unique(dat$X..offenses)
 ```
 
-We have 3 options:
+For each anomaly detected we have 3 options:
 
 - Remove lines containing invalid data.
 - Substitute invalid cells by a central measure of the cell.
