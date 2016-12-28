@@ -148,6 +148,32 @@ sum2 <- group_by(i2, Beat) %>% summarise(num=sum(X..offenses))
 sum3 <- group_by(i3, Beat) %>% summarise(num=sum(X..offenses))
 ```
 
+```{r}
+barplot(c(sum(sum1$num), sum(sum2$num), sum(sum3$num)), names.arg = c("8-12", "12-19", "19-8"), main = "Total crimes over time intervals")
+```
+
+```{r}
+beat <- group_by(dat, Beat) %>% summarise(num=sum(X..offenses))
+most <- head(arrange(beat,desc(num)))
+barplot(most$num, names.arg=most$Beat, main="Beats with most crimes")
+```
+
+```{r}
+least <- head(arrange(beat, num))
+barplot(least$num, names.arg=least$Beat, main="Beats with least crimes")
+```
+
+```{r}
+boxplot(beat$num, main="Distribution of number of crimes per beat")
+```
+
+```{r}
+offenses <- group_by(dat, Offense.Type) %>%
+  filter(Offense.Type != 1) %>% summarize(total=sum(X..offenses))
+barplot(offenses$total, names.arg=offenses$Offense.Type,
+        main="Number of occurences per crime type")
+```
+
 #Third task:
 
 ##Predictive modeling
