@@ -9,7 +9,7 @@ output: html_document
 
 ##Data import and clean-up
 
-###Setting the *working directory*
+###Setting the working directory
 
 Download the file "crime.xls" to the directory where you are going to work. Alternatively, if you want to change the current directory, do:
 
@@ -60,7 +60,14 @@ The Offense Types found on the data set are:
 unique(dat$Offense.Type)
 dat[dat$Offense.Type == 1,]
 ```
+
 We identified an instance where the `Offense.Type` column does not have a valid value. However, it is a registered crime that quite possibly happened, and although it may not help predicting which crimes may occur, it will surely help predicting how many crimes per beat will occur.
+Thus we perform a "cleaning" of the same.
+
+```{r}
+#dat_clean <- dat[-(dat$Offense.Type == 1), ]
+dat <- subset(dat, dat$Offense.Type != 1)
+```
 
 All dates have a valid format:
 ```{r}
@@ -72,7 +79,7 @@ All hours have a valid format:
 dat[dat$Hour < 0 | dat$Hour > 23,]
 dat[!grep("^[0-9]{2}$", dat$Hour),]
 ```
-Some anomalies were found on the `Beat` column:
+Some anomalies (unknown values) were found on the `Beat` column:
 ```{r}
 unique(dat$Beat)
 nrow(dat[is.na(dat$Beat),])
@@ -92,22 +99,30 @@ ts <- gps[incomplete,1:2]
 dat$Beat[incomplete] <- knn(tr, ts, dat$Beat[!incomplete], k = 3)
 ```
 
+Some anomalies (unknown values) were found on the `BlockRange` column:
 ```{r}
 nrow(dat[is.na(dat$BlockRange),])
 ```
+Some anomalies (worthless) were found on the `Type` column:
 ```{r}
 unique(dat$Type)
 nrow(dat[dat$Type == "-",])
 ```
-
+Some anomalies (worthless) were found on the `Suffix` column:
 ```{r}
 unique(dat$Suffix)
 nrow(dat[dat$Suffix == "-",])
 ```
-
+Todas as ofensas foram contadas:
 ```{r}
 unique(dat$X..offenses)
 ```
+
+For each anomaly detected we have 3 options:
+
+- Remove lines containing invalid data.
+- Substitute invalid cells by a central measure of the cell.
+- Substitute invalid cells by an average over the k-nearest neighbours of its line on the data set.
 
 #Second task:
 
@@ -115,7 +130,20 @@ unique(dat$X..offenses)
 Summarize and visualize the data in ways that we find useful for the police (look for interesting questions the police may have about the data and provide the answers, or use textual summaries or data visualization).
 
 ```{r}
+dat <- tbl_df(dat)
 
+#View the data per hour
+datxts <- xts(dat, ymd_h(paste(dat$Date,' ',dat$Hour)))
+
+#Split the data into 3 categories
+i1 <- filter(dat, 8 <= dat$Hour, dat$Hour < 12)
+i2 <- filter(dat, 12 <= dat$Hour, dat$Hour < 19)
+i3 <- filter(dat, (19 <= dat$Hour & dat$Hour <= 23) | (0 <= dat$Hour & dat$Hour < 8))
+
+#How many Offenses are made per interval in each category
+sum1 <- group_by(i1, Beat) %>% summarise(num=sum(X..offenses))
+sum2 <- group_by(i2, Beat) %>% summarise(num=sum(X..offenses))
+sum3 <- group_by(i3, Beat) %>% summarise(num=sum(X..offenses))
 ```
 
 #Third task:
