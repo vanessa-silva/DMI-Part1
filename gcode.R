@@ -42,9 +42,15 @@ dat$StreetName <- as.character(dat$StreetName)
 dat$Type <- as.character(dat$Type)
 dat$Suffix <- as.character(dat$Suffix)
 
+library(ggmap)
+
 for (i in 1:(dim(dat)[1])) {
-  if (!is.na(gps[i,1]))
+  if (!is.na(gps[i,2]))
     next
+  else {
+    print(i)
+    next
+  }
   
   if (is.na(dat$BlockRange[i]))
     dat$BlockRange[i] <- ""
@@ -61,7 +67,10 @@ for (i in 1:(dim(dat)[1])) {
     dat$Suffix[i] <- " "
   
   addr <- paste(dat$BlockRange[i], dat$StreetName[i], dat$Type[i], dat$Suffix[i], city)
-  gps[i,] <- geoCode(addr)
+  ##gps[i,] <- geoCode(addr)
+  cur <- geocode(addr, source = "dsk")
+  gps[i,1] <- cur$lat
+  gps[i,2] <- cur$lon
 }
 
 save(gps, file = "gps.RData")

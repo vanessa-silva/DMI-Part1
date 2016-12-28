@@ -33,6 +33,7 @@ install.packages("gdata")
 install.packages("lubridate")
 install.packages("xts")
 install.packages("dplyr")
+install.packages("DMwR")
 
 #Load the packages
 library(gdata)
@@ -40,11 +41,17 @@ library(lubridate)
 library(xts)
 library(dplyr)
 library(stringr)
+library(DMwR)
+library(class)
 
 perldir <- Sys.which("perl")
 
 fc <- "crime.xls" 
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir, na.strings = "UNK")
+dat$BlockRange <- as.character(dat$BlockRange)
+dat$StreetName <- as.character(dat$StreetName)
+dat$Type <- as.character(dat$Type)
+dat$Suffix <- as.character(dat$Suffix)
 ```
 
 ###Check whether any data clean-up and/or pre-processing steps are necessary.
@@ -53,7 +60,7 @@ The Offense Types found on the data set are:
 unique(dat$Offense.Type)
 dat[dat$Offense.Type == 1,]
 ```
-We identified an instance where the `Offense.Type` column does not have a valid value.
+We identified an instance where the `Offense.Type` column does not have a valid value. However, it is a registered crime that quite possibly happened, and although it may not help predicting which crimes may occur, it will surely help predicting how many crimes per beat will occur.
 
 All dates have a valid format:
 ```{r}
@@ -69,6 +76,20 @@ Some anomalies were found on the `Beat` column:
 ```{r}
 unique(dat$Beat)
 nrow(dat[is.na(dat$Beat),])
+```
+
+The `Beat` column is rather important since the purpose of the prediction model is given a beat and a time of the day, predict how many crimes will occur. Luckily, there are not many invalid `Beat` cells.
+
+Based on Hounton Police [beat map][http://www.houstontx.gov/police/pdfs/hpd_beat_map.pdf] we can reconstruct manually the `Beat` cells using the street name and block range.
+
+However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column.
+
+```{r}
+load("gps.RData")
+incomplete <- is.na(dat$Beat)
+tr <- gps[!incomplete,1:2]
+ts <- gps[incomplete,1:2]
+dat$Beat[incomplete] <- knn(tr, ts, dat$Beat[!incomplete], k = 3)
 ```
 
 ```{r}
@@ -88,12 +109,6 @@ nrow(dat[dat$Suffix == "-",])
 unique(dat$X..offenses)
 ```
 
-We have 3 options:
-
-- Remove lines containing invalid data.
-- Substitute invalid cells by a central measure of the cell.
-- Substitute invalid cells by an average over the k-nearest neighbours of its line on the data set.
-
 #Second task:
 
 ##Data exploratory analysis
@@ -109,7 +124,6 @@ Summarize and visualize the data in ways that we find useful for the police (loo
 ###Set a prediction task that can help police respond to their operational objective. 
 
 ```{r}
-
 ```
 
 ###Use the available data to select and get a good model for this task.
