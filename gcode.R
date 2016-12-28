@@ -34,9 +34,13 @@ fc <- "crime.xls"
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir, na.strings = "UNK")
 
 gps <- matrix(nrow=dim(dat)[1], ncol=4)
-city <- "HOUSTON"
+city <- ", HOUSTON, USA"
 
 load("gps.RData")
+dat$BlockRange <- as.character(dat$BlockRange)
+dat$StreetName <- as.character(dat$StreetName)
+dat$Type <- as.character(dat$Type)
+dat$Suffix <- as.character(dat$Suffix)
 
 for (i in 1:(dim(dat)[1])) {
   if (!is.na(gps[i,1]))
@@ -44,15 +48,17 @@ for (i in 1:(dim(dat)[1])) {
   
   if (is.na(dat$BlockRange[i]))
     dat$BlockRange[i] <- ""
+  else if (dat$BlockRange[i] != "")
+    dat$BlockRange[i] <- strsplit(as.character(dat$BlockRange[i]), "-")[[1]][1]
   
   if (is.na(dat$StreetName[i]) | dat$StreetName[i] == "UNK")
-    dat$StreetName[i] <- ""
+    dat$StreetName[i] <- " "
   
   if (is.na(dat$Type[i]) | dat$Type[i] == "-")
-    dat$Type[i] <- ""
+    dat$Type[i] <- " "
   
   if (is.na(dat$Suffix[i]) | dat$Suffix[i] == "-")
-    dat$Suffix[i] <- ""
+    dat$Suffix[i] <- " "
   
   addr <- paste(dat$BlockRange[i], dat$StreetName[i], dat$Type[i], dat$Suffix[i], city)
   gps[i,] <- geoCode(addr)
