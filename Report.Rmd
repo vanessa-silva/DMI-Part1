@@ -87,7 +87,8 @@ nrow(dat[is.na(dat$Beat),])
 
 The `Beat` column is rather important since the purpose of the prediction model is given a beat and a time of the day, predict how many crimes will occur. Luckily, there are not many invalid `Beat` cells.
 
-Based on Hounton Police beat map ![](hpd_beat_map.png) we can reconstruct manually the `Beat` cells using the street name and block range.
+Based on Hounton Police beat map, we can reconstruct manually the `Beat` cells using the street name and block range.
+![](hpd_beat_map.png)
 
 However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column.
 
@@ -113,20 +114,10 @@ Some anomalies (worthless) were found on the `Type` column:
 unique(dat$Type)
 nrow(dat[dat$Type == "-",])
 ```
-To solve it, we replaced the invalid cells for the central value of the `Type` column:
-```{r}
-incomplete <- is.na(dat$Type)
-dat$Type[incomplete] <- centralValue(dat$Type)
-```
 Some anomalies (worthless) were found on the `Suffix` column:
 ```{r}
 unique(dat$Suffix)
 nrow(dat[dat$Suffix == "-",])
-```
-To solve it, we replaced the invalid cells for the central value of the `Suffix` column:
-```{r}
-incomplete <- is.na(dat$Suffix)
-dat$Suffix[incomplete] <- centralValue(dat$Suffix)
 ```
 All offenses were counted:
 ```{r}
