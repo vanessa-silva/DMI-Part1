@@ -9,7 +9,7 @@ output: html_document
 
 ##Data import and clean-up
 
-###Setting the *working directory*
+###Setting the working directory
 
 Download the file "crime.xls" to the directory where you are going to work. Alternatively, if you want to change the current directory, do:
 
@@ -100,7 +100,20 @@ We have 3 options:
 Summarize and visualize the data in ways that we find useful for the police (look for interesting questions the police may have about the data and provide the answers, or use textual summaries or data visualization).
 
 ```{r}
+dat <- tbl_df(dat)
 
+#View the data per hour
+datxts <- xts(dat, ymd_h(paste(dat$Date,' ',dat$Hour)))
+
+#Split the data into 3 categories
+i1 <- filter(dat, 8 <= dat$Hour, dat$Hour < 12)
+i2 <- filter(dat, 12 <= dat$Hour, dat$Hour < 19)
+i3 <- filter(dat, (19 <= dat$Hour & dat$Hour <= 23) | (0 <= dat$Hour & dat$Hour < 8))
+
+#How many Offenses are made per interval in each category
+sum1 <- group_by(i1, Beat) %>% summarise(num=sum(X..offenses))
+sum2 <- group_by(i2, Beat) %>% summarise(num=sum(X..offenses))
+sum3 <- group_by(i3, Beat) %>% summarise(num=sum(X..offenses))
 ```
 
 #Third task:
