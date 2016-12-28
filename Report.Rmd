@@ -103,15 +103,30 @@ Some anomalies (unknown values) were found on the `BlockRange` column:
 ```{r}
 nrow(dat[is.na(dat$BlockRange),])
 ```
+To solve it, we replaced the invalid cells for the central value of the `BlockRange` column:
+```{r}
+incomplete <- is.na(dat$BlockRange)
+dat$BlockRange[incomplete] <- centralValue(dat$BlockRange)
+```
 Some anomalies (worthless) were found on the `Type` column:
 ```{r}
 unique(dat$Type)
 nrow(dat[dat$Type == "-",])
 ```
+To solve it, we replaced the invalid cells for the central value of the `Type` column:
+```{r}
+incomplete <- is.na(dat$Type)
+dat$Type[incomplete] <- centralValue(dat$Type)
+```
 Some anomalies (worthless) were found on the `Suffix` column:
 ```{r}
 unique(dat$Suffix)
 nrow(dat[dat$Suffix == "-",])
+```
+To solve it, we replaced the invalid cells for the central value of the `Suffix` column:
+```{r}
+incomplete <- is.na(dat$Suffix)
+dat$Suffix[incomplete] <- centralValue(dat$Suffix)
 ```
 All offenses were counted:
 ```{r}
