@@ -89,7 +89,7 @@ Some anomalies (worthless) were found on the `Suffix` column:
 unique(dat$Suffix)
 nrow(dat[dat$Suffix == "-",])
 ```
-Todas as ofensas foram contadas:
+All offenses were counted:
 ```{r}
 unique(dat$X..offenses)
 ```
@@ -120,6 +120,19 @@ i3 <- filter(dat, (19 <= dat$Hour & dat$Hour <= 23) | (0 <= dat$Hour & dat$Hour 
 sum1 <- group_by(i1, Beat) %>% summarise(num=sum(X..offenses))
 sum2 <- group_by(i2, Beat) %>% summarise(num=sum(X..offenses))
 sum3 <- group_by(i3, Beat) %>% summarise(num=sum(X..offenses))
+
+#How many offenses are made per offense type
+sum4 <- group_by(dat, Offense.Type) %>% summarise(num=sum(X..offenses))
+plot(sum4$num ~ sum4$Offense.Type, xlab = "Offense.Type", ylab = "Num", main = "Number of offenses per offense type")
+
+#How many offenses are made per offense type in each beat
+sum5 <- group_by(dat, Offense.Type, Beat) %>% summarise(num=sum(X..offenses))
+```
+Some data summarization:
+```{r}
+dat %>% summarise(avg.Off=mean(dat$X..offenses),
+                  cen.OffTp=centralValue(dat$Offense.Type),
+                  cen.StrNm=centralValue(dat$StreetName))
 ```
 
 #Third task:
