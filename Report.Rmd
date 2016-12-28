@@ -113,13 +113,7 @@ Some anomalies (worthless) were found on the `Suffix` column:
 unique(dat$Suffix)
 nrow(dat[dat$Suffix == "-",])
 ```
-<<<<<<< HEAD
 All offenses were counted:
-=======
-
-All the Offenses were counted:
-
->>>>>>> 1bdcc1288775c74c48956a506f542de1923a2210
 ```{r}
 unique(dat$X..offenses)
 ```
