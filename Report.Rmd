@@ -66,7 +66,7 @@ Thus we perform a "cleaning" of the same.
 
 ```{r}
 #dat_clean <- dat[-(dat$Offense.Type == 1), ]
-dat <- subset(dat, dat$Offense.Type != 1)
+#dat <- subset(dat, dat$Offense.Type != 1)
 ```
 
 All dates have a valid format:
@@ -87,7 +87,7 @@ nrow(dat[is.na(dat$Beat),])
 
 The `Beat` column is rather important since the purpose of the prediction model is given a beat and a time of the day, predict how many crimes will occur. Luckily, there are not many invalid `Beat` cells.
 
-Based on Hounton Police [beat map][http://www.houstontx.gov/police/pdfs/hpd_beat_map.pdf] we can reconstruct manually the `Beat` cells using the street name and block range.
+Based on Hounton Police beat map ![](hpd_beat_map.png) we can reconstruct manually the `Beat` cells using the street name and block range.
 
 However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column.
 
