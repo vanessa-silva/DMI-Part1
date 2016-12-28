@@ -19,8 +19,12 @@ unique(dat$Hour)
 library(lubridate)
 library(xts)
 library(dplyr)
+<<<<<<< HEAD
 library(DMwR)
 dat <- tbl_df(dat)
+=======
+dat_df <- tbl_df(dat)
+>>>>>>> 1bdcc1288775c74c48956a506f542de1923a2210
 
 
 datxts <- xts(dat, ymd_h(paste(dat$Date,' ',dat$Hour)))
@@ -28,6 +32,7 @@ i1 <- filter(dat, 8 <= dat$Hour, dat$Hour < 12)
 i2 <- filter(dat, 12 <= dat$Hour, dat$Hour < 19)
 i3 <- filter(dat, (19 <= dat$Hour & dat$Hour <= 23) | (0 <= dat$Hour & dat$Hour < 8))
 
+<<<<<<< HEAD
 sum1 <- group_by(i1, Beat) %>% summarise(num=sum(X..offenses))
 sum2 <- group_by(i2, Beat) %>% summarise(num=sum(X..offenses))
 sum3 <- group_by(i3, Beat) %>% summarise(num=sum(X..offenses))
@@ -45,3 +50,6 @@ dat %>% summarise(avg.Off=mean(dat$X..offenses),
                   cen.OffTp=centralValue(dat$Offense.Type),
                   cen.StrNm=centralValue(dat$StreetName))
 
+=======
+sum1 <- group_by(i1, Beat) %>% summarise(num=sum(X..offenses)/length(unique(i1$Date)))
+>>>>>>> 1bdcc1288775c74c48956a506f542de1923a2210

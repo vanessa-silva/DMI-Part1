@@ -33,6 +33,7 @@ install.packages("gdata")
 install.packages("lubridate")
 install.packages("xts")
 install.packages("dplyr")
+install.packages("DMwR")
 
 #Load the packages
 library(gdata)
@@ -40,11 +41,17 @@ library(lubridate)
 library(xts)
 library(dplyr)
 library(stringr)
+library(DMwR)
+library(class)
 
 perldir <- Sys.which("perl")
 
 fc <- "crime.xls" 
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir, na.strings = "UNK")
+dat$BlockRange <- as.character(dat$BlockRange)
+dat$StreetName <- as.character(dat$StreetName)
+dat$Type <- as.character(dat$Type)
+dat$Suffix <- as.character(dat$Suffix)
 ```
 
 ###Check whether any data clean-up and/or pre-processing steps are necessary.
@@ -53,11 +60,13 @@ The Offense Types found on the data set are:
 unique(dat$Offense.Type)
 dat[dat$Offense.Type == 1,]
 ```
-We identified an instance where the `Offense.Type` column does not have a valid value.
+
+We identified an instance where the `Offense.Type` column does not have a valid value. However, it is a registered crime that quite possibly happened, and although it may not help predicting which crimes may occur, it will surely help predicting how many crimes per beat will occur.
 Thus we perform a "cleaning" of the same.
+
 ```{r}
 #dat_clean <- dat[-(dat$Offense.Type == 1), ]
-dat <- subset(dat, dat$Offense.Type != 1)
+#dat <- subset(dat, dat$Offense.Type != 1)
 ```
 
 All dates have a valid format:
@@ -75,6 +84,21 @@ Some anomalies (unknown values) were found on the `Beat` column:
 unique(dat$Beat)
 nrow(dat[is.na(dat$Beat),])
 ```
+
+The `Beat` column is rather important since the purpose of the prediction model is given a beat and a time of the day, predict how many crimes will occur. Luckily, there are not many invalid `Beat` cells.
+
+Based on Hounton Police beat map ![](hpd_beat_map.png) we can reconstruct manually the `Beat` cells using the street name and block range.
+
+However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column.
+
+```{r}
+load("gps.RData")
+incomplete <- is.na(dat$Beat)
+tr <- gps[!incomplete,1:2]
+ts <- gps[incomplete,1:2]
+dat$Beat[incomplete] <- knn(tr, ts, dat$Beat[!incomplete], k = 3)
+```
+
 Some anomalies (unknown values) were found on the `BlockRange` column:
 ```{r}
 nrow(dat[is.na(dat$BlockRange),])
@@ -89,7 +113,13 @@ Some anomalies (worthless) were found on the `Suffix` column:
 unique(dat$Suffix)
 nrow(dat[dat$Suffix == "-",])
 ```
+<<<<<<< HEAD
 All offenses were counted:
+=======
+
+All the Offenses were counted:
+
+>>>>>>> 1bdcc1288775c74c48956a506f542de1923a2210
 ```{r}
 unique(dat$X..offenses)
 ```
@@ -135,13 +165,38 @@ dat %>% summarise(avg.Off=mean(dat$X..offenses),
                   cen.StrNm=centralValue(dat$StreetName))
 ```
 
+```{r}
+barplot(c(sum(sum1$num), sum(sum2$num), sum(sum3$num)), names.arg = c("8-12", "12-19", "19-8"), main = "Total crimes over time intervals")
+```
+
+```{r}
+beat <- group_by(dat, Beat) %>% summarise(num=sum(X..offenses))
+most <- head(arrange(beat,desc(num)))
+barplot(most$num, names.arg=most$Beat, main="Beats with most crimes")
+```
+
+```{r}
+least <- head(arrange(beat, num))
+barplot(least$num, names.arg=least$Beat, main="Beats with least crimes")
+```
+
+```{r}
+boxplot(beat$num, main="Distribution of number of crimes per beat")
+```
+
+```{r}
+offenses <- group_by(dat, Offense.Type) %>%
+  filter(Offense.Type != 1) %>% summarize(total=sum(X..offenses))
+barplot(offenses$total, names.arg=offenses$Offense.Type,
+        main="Number of occurences per crime type")
+```
+
 #Third task:
 
 ##Predictive modeling
 ###Set a prediction task that can help police respond to their operational objective. 
 
 ```{r}
-
 ```
 
 ###Use the available data to select and get a good model for this task.
