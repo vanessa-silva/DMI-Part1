@@ -58,6 +58,7 @@ install.packages("DMwR")
 install.packages("e1071")
 install.packages("earth")
 install.packages("randomForest")
+install.packages("performanceEstimation")
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -73,6 +74,7 @@ library(nnet)
 library(e1071)
 library(earth)
 library(randomForest)
+library(performanceEstimation)
 
 perldir <- Sys.which("perl")
 
@@ -284,30 +286,88 @@ s <- svm(N ~ Beat + HourType, modelDat)
 
 mars <- earth(N ~ Beat + HourType, modelDat)
 
-m <- randomForest(N ~ Beat + HourType, modelDat)
+#m <- randomForest(N ~ Beat + HourType, modelDat)
+
+rpart <- rpartXse(N ~ Beat + HourType, modelDat)
 ```
 
 ```{r}
+nreps <- 10
+scores <- list(nnet=vector("numeric",length=nreps),
+               naiveBayes=vector("numeric",length=nreps),
+               svm=vector("numeric",length=nreps),
+               earth=vector("numeric",length=nreps),
+               randomForest=vector("numeric",length=nreps),
+               rpartXse=vector("numeric",length=nreps))
+
+n <- nrow(modelDat)
+set.seed(1234)
+for(i in 1:nreps) {
+   # random sample with replacement
+   sp <- sample(n,n,replace=TRUE)
+   # data splitting
+   tr <- modelDat[sp,]
+   ts <- modelDat[-sp,]
+   
+   # model learning and prediction
+   m <- nnet(N ~ Beat + HourType,tr, size=8, decay=0.1, maxit=1000)
+   p <- predict(m,ts)
+   # evaluation
+   scores$nnet[i] <- mean((ts$N-p)^2)
+   
+   #m <- naiveBayes(N ~ Beat + HourType,tr)
+   #p <- predict(m,ts)
+   #scores$naiveBayes[i] <- mean((ts$N-p)^2)
+   
+   m <- svm(N ~ Beat + HourType,tr)
+   p <- predict(m,ts)
+   scores$svm[i] <- mean((ts$N-p)^2)
+   
+   m <- earth(N ~ Beat + HourType,tr)
+   p <- predict(m,ts)
+   scores$earth[i] <- mean(abs(ts$N-p)^2)
+   
+   #m <- randomForest(N ~ Beat + HourType,tr)
+   #p <- predict(m,ts)
+   #scores$randomForest[i] <- mean((ts$N-p)^2)
+   
+   m <- rpartXse(N ~ Beat + HourType,tr)
+   p <- predict(m,ts)
+   scores$rpartXse[i] <- mean((ts$N-p)^2)
+   
+}
+# calculating means and standard errors
+#summary(scores$naiveBayes)
+summary(scores$nnet)
+summary(scores$svm)
+summary(scores$earth)
+#summary(scores$randomForest)
+summary(scores$rpartXse)
+
+res <- performanceEstimation(PredTask(N ~ Beat + HourType, modelDat, "w/o"), workflowVariants(learner=c("svm", "earth", "rpartXse")), EstimationTask(metrics = c("mse", "mae")))
+
+plot(res)
+
 #Mean Squared Error
-mse <- mean((trueVals-preds)^2)
+#mse <- mean((trueVals-preds)^2)
 
 #Root Mean Squared Error
-rmse <- sqrt(mse)
+#rmse <- sqrt(mse)
 
 #Mean Absolute Error
-mae <- mean(abs(trueVals-preds))
+#mae <- mean(abs(trueVals-preds))
 
 #Normalized Mean Squared Error
-nmse <- sum((trueVals-preds)^2) / sum((trueVals-mean(trueVals))^2)
+#nmse <- sum((trueVals-preds)^2) / sum((trueVals-mean(trueVals))^2)
 
 #Normalized Mean Absolute Error
-nmae <- sum(abs(trueVals-preds)) / sum(abs(trueVals-mean(trueVals)))
+#nmae <- sum(abs(trueVals-preds)) / sum(abs(trueVals-mean(trueVals)))
 
 #Mean Average Percentage Error
-mape <- mean(abs(trueVals-preds)/trueVals)
+#mape <- mean(abs(trueVals-preds)/trueVals)
 
 #Correlation between the predictions and the true values
-corr <- cor(trueVals,preds)
+#corr <- cor(trueVals,preds)
 ```
 
 ###Justification
