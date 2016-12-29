@@ -46,3 +46,103 @@ dat %>% summarise(avg.Off=mean(dat$X..offenses),
 
 sum1_ <- group_by(i1, Beat) %>% summarise(num=sum(X..offenses)/length(unique(i1$Date)))
 
+
+
+#Random data division
+sp <- sample(1:nrow(dat), as.integer(nrow(dat)*0.7))
+tr <- dat[sp,]
+ts <- dat[-sp,]
+
+#Obtain a multiple linear regression model using the largest set
+library(DMwR) 
+la <- lm(X..offenses ~ Beat + HourType, tr) 
+
+#Check the diagnostic information provided for the model
+summary(la) 
+
+final_la <- step(la)
+summary(final_la) 
+
+#Obtain the predictions of the obtained model on the smaller set
+preds <- predict(la,ts)
+
+
+##Naive Bayes 
+
+library(e1071) 
+
+#Random data division
+sp <- sample(1:nrow(modelDat), as.integer(nrow(modelDat)*0.7))
+tr <- modelDat[sp,]
+ts <- modelDat[-sp,]
+
+nb <- naiveBayes(N ~ Beat + HourType, tr) 
+nb
+#pred <- predict(nb, ts)    ##Warning message: In data.matrix(newdata) : NAs introduced by coercion??
+#(mtrx <- table(pred,ts$N))
+#(err <- 1-sum(diag(mtrx))/sum(mtrx))
+#head(predict(nb,ts,type='raw'))
+
+##with Laplace correction
+nb_ <- naiveBayes(N ~ Beat + HourType, tr, laplace=1)
+#preds_ <- predict(nb_, ts)    ##Warning message: In data.matrix(newdata) : NAs introduced by coercion??
+#(mtrx <- table(preds_,ts$N))
+#(err <- 1-sum(diag(mtrx))/sum(mtrx))
+#head(predict(nb_,ts,type='raw'))
+
+
+##SVMs
+
+s <- svm(N ~ Beat + HourType,tr) 
+preds <- predict(s,ts)
+
+ps <- predict(s,ts) 
+
+mc <- table(ps,ts$N)
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+
+
+##??-SV Regression
+
+s <- svm(N ~ Beat + HourType, tr, cost=10, epsilon=0.02) 
+preds <- predict(s,ts) 
+regr.eval(ts$N, preds)
+
+plot(ts$N, preds, main='Errors Scaterplot', ylab='Predictions', xlab='True') 
+abline(0,1,col='red',lty=2)
+
+
+##Feed-forward Multilayer ANN
+
+library(nnet)
+nn <- nnet(N ~ Beat + HourType, tr, size=8, decay=0.1, maxit=1000)
+(mtrx <- table(predict(nn,ts),ts$N))
+nn
+
+summary(nn)
+head(predict(nn,ts))
+
+
+##MARS 
+
+library(earth) 
+
+mars <- earth(N ~ Beat + HourType, tr)
+preds <- predict(mars,ts) 
+
+summary(mars)
+
+
+##Random Forests
+
+library(randomForest) 
+#m <- randomForest(N ~ Beat + HourType, tr)
+#preds <- predict(m,ts) 
+
+
+##Holdout 
+
+library(DMwR) 
+m <- rpartXse(N ~ Beat + HourType,tr)
+regr.eval(ts$N,p,train.y=tr$N)
+p <- predict(m,ts) 
