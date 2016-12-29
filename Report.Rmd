@@ -55,6 +55,9 @@ install.packages("lubridate")
 install.packages("xts")
 install.packages("dplyr")
 install.packages("DMwR")
+install.packages("e1071")
+install.packages("earth")
+install.packages("randomForest")
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -66,6 +69,10 @@ library(dplyr)
 library(stringr)
 library(DMwR)
 library(class)
+library(nnet)
+library(e1071)
+library(earth)
+library(randomForest)
 
 perldir <- Sys.which("perl")
 
@@ -238,13 +245,43 @@ barplot(offenses$total, names.arg=offenses$Offense.Type,
 ###Prediction task
 
 ```{r}
+fiscalDate <- function(arg) {
+  date <- arg[2]
+  hour <- arg[1]
+  if (as.integer(hour) >= 0 && as.integer(hour) < 8)
+    return(as.character(ymd(date)-1));
+  return(as.character(ymd(date)));
+}
 
+hourType <- function(hour) {
+  hour <- as.integer(hour)
+  if (8 <= hour && hour < 12)
+    return(1)
+  if (12 <= hour && hour < 19)
+    return(2)
+  return(3)
+}
+
+args <- mapply(c, dat$Hour, as.character(dat$Date), SIMPLIFY = FALSE)
+
+dat <- mutate(dat, HourType=sapply(Hour, hourType))
+dat <- mutate(dat, FiscalDate=sapply(args, fiscalDate))
+
+modelDat <- group_by(dat, FiscalDate, Beat, HourType) %>% summarize(N=sum(X..offenses))
 ```
 
 ###Model
 
 ```{r}
+nn <- nnet(N ~ Beat + HourType, newdat, size=8, decay=0.1, maxit=1000)
 
+nb <- naiveBayes(N ~ Beat + HourType, newdat)
+
+s <- svm(N ~ Beat + HourType, newdat)
+
+mars <- earth(N ~ Beat + HourType, newdat)
+
+m <- randomForest(N ~ Beat + HourType,newdat)
 ```
 
 ###Justification
