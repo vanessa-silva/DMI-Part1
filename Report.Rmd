@@ -1,17 +1,38 @@
 ---
-title: "Report"
-author: "FÃ¡bio Teixeira, Miguel Ferreira, Vanessa Silva"
+title: "Report - Data Mining I"
+author: "Fábio Teixeira, Miguel Ferreira, Vanessa Silva"
 date: "20 de Dezembro de 2016"
 output: html_document
 ---
+<br /> 
 
-#First task:
+This report follows the predictive analysis of a set of data on crime events in Houston, Texas, USA.
+
+This analysis is made by three fundamental tasks: data import and clean-up, data exploratory analysis and predictive modeling. The first task is to import, in an appropriate format R, the data, in order to simplify the analysis thereof, and to perform any data  clean-up and/or pre-processing steps, if necessary. The second, in presenting summaries, questions and visualizing of the data in useful ways to the police. And in the third task, a prediction task is defined, where a model and its justification are presented, which can help the police answer the question: "What will be the number of events/offenses in police beat X for the period of the day Y? "
+
+
+**Problema**
+
+Obtain a model that helps the police to distribute its resources through the different areas of the city (policy beats).
+
+We will assume that the goal of the policy department is to allocate the resources based on the number of estimated events (of any type) for a certain area, ie your goal is to accurately estimate the number of events (offenses) that are going to occur on a certain area.
+
+The police makes personel allocation decisions 3 times per day: (i) one decision for the morning period (8:00<= t < 12:00); (ii) one for the afternoon (12:00 <= t < 19:00); and the last decision for the night period (19:00 <= t < 8:00). These decisions are made for each week day and for each police beat.
+
+**Data**
+
+The provided spreadsheet contains information on crime events on Houston, Texas, USA. Each row contains several information on the event.
+<br /> 
+<br /> 
+
+
+#First Task
 
 ##Data import and clean-up
 
 ###Setting the working directory
 
-Download the file "crime.xls" to the directory where you are going to work. Alternatively, if you want to change the current directory, do:
+Download the file "**crime.xls**" to the directory where you are going to work. Alternatively, if you want to change the current directory, do:
 
 ```{r, eval=FALSE}
 setwd(dir)
@@ -23,18 +44,20 @@ And to view the current directory:
 getwd()
 ```
 
-###Import the data into an appropriate R format:
+###Import the data
 
 Note: If you do not have Perl installed on Windows, download it [here](http://www.activestate.com/activeperl/downloads).
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r, eval=FALSE, message=FALSE, warning=FALSE, results='hide'}
 #Install the necessary packages
 install.packages("gdata")
 install.packages("lubridate")
 install.packages("xts")
 install.packages("dplyr")
 install.packages("DMwR")
+```
 
+```{r, message=FALSE, warning=FALSE, results='hide'}
 #Load the packages
 library(gdata)
 library(lubridate)
@@ -48,25 +71,23 @@ perldir <- Sys.which("perl")
 
 fc <- "crime.xls" 
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir, na.strings = "UNK")
+
 dat$BlockRange <- as.character(dat$BlockRange)
 dat$StreetName <- as.character(dat$StreetName)
 dat$Type <- as.character(dat$Type)
 dat$Suffix <- as.character(dat$Suffix)
 ```
 
-###Check whether any data clean-up and/or pre-processing steps are necessary.
+###Data clean-up and/or pre-processing steps necessary
 The Offense Types found on the data set are:
 ```{r}
 unique(dat$Offense.Type)
-dat[dat$Offense.Type == 1,]
 ```
 
 We identified an instance where the `Offense.Type` column does not have a valid value. However, it is a registered crime that quite possibly happened, and although it may not help predicting which crimes may occur, it will surely help predicting how many crimes per beat will occur.
-Thus we perform a "cleaning" of the same.
 
 ```{r}
-#dat_clean <- dat[-(dat$Offense.Type == 1), ]
-#dat <- subset(dat, dat$Offense.Type != 1)
+dat[dat$Offense.Type == 1,]
 ```
 
 All dates have a valid format:
@@ -79,6 +100,7 @@ All hours have a valid format:
 dat[dat$Hour < 0 | dat$Hour > 23,]
 dat[!grep("^[0-9]{2}$", dat$Hour),]
 ```
+
 Some anomalies (unknown values) were found on the `Beat` column:
 ```{r}
 unique(dat$Beat)
@@ -87,28 +109,11 @@ nrow(dat[is.na(dat$Beat),])
 
 The `Beat` column is rather important since the purpose of the prediction model is given a beat and a time of the day, predict how many crimes will occur. Luckily, there are not many invalid `Beat` cells.
 
-Based on Hounton Police beat map, we can reconstruct manually the `Beat` cells using the street name and block range.
-![](hpd_beat_map.png)
-
-However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column.
-
-```{r}
-load("gps.RData")
-incomplete <- is.na(dat$Beat)
-tr <- gps[!incomplete,1:2]
-ts <- gps[incomplete,1:2]
-dat$Beat[incomplete] <- knn(tr, ts, dat$Beat[!incomplete], k = 3)
-```
-
 Some anomalies (unknown values) were found on the `BlockRange` column:
 ```{r}
 nrow(dat[is.na(dat$BlockRange),])
 ```
-To solve it, we replaced the invalid cells for the central value of the `BlockRange` column:
-```{r}
-incomplete <- is.na(dat$BlockRange)
-dat$BlockRange[incomplete] <- centralValue(dat$BlockRange)
-```
+
 Some anomalies (worthless) were found on the `Type` column:
 ```{r}
 unique(dat$Type)
@@ -130,11 +135,41 @@ For each anomaly detected we have 3 options:
 - Substitute invalid cells by a central measure of the cell.
 - Substitute invalid cells by an average over the k-nearest neighbours of its line on the data set.
 
-#Second task:
+Based on Hounton Police beat map, we can reconstruct manually the `Beat` cells using the street name and block range.
+![](hpd_beat_map.png)
+
+However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column.
+```{r}
+load("gps.RData")
+incomplete <- is.na(dat$Beat)
+tr <- gps[!incomplete,1:2]
+ts <- gps[incomplete,1:2]
+dat$Beat[incomplete] <- knn(tr, ts, dat$Beat[!incomplete], k = 3)
+```
+
+To solve of the anomalies in `BlockRange` column, we replaced the invalid cells for the central value of the:
+```{r}
+incomplete <- is.na(dat$BlockRange)
+dat$BlockRange[incomplete] <- centralValue(dat$BlockRange)
+```
+
+To solve of the anomalies in `Type` column, we replaced the invalid cells for the central value of the:
+```{r}
+incomplete <- is.na(dat$Type)
+dat$Type[incomplete] <- centralValue(dat$Type)
+```
+
+To solve of the anomalies in `Suffix` column, we replaced the invalid cells for the central value of the:
+```{r}
+incomplete <- is.na(dat$Suffix)
+#... see on GPS?
+```
+
+#Second Task
 
 ##Data exploratory analysis
-Summarize and visualize the data in ways that we find useful for the police (look for interesting questions the police may have about the data and provide the answers, or use textual summaries or data visualization).
 
+We **summarize** and **visualize** the data in useful ways for the police.
 ```{r}
 dat <- tbl_df(dat)
 
@@ -153,37 +188,42 @@ sum3 <- group_by(i3, Beat) %>% summarise(num=sum(X..offenses))
 
 #How many offenses are made per offense type
 sum4 <- group_by(dat, Offense.Type) %>% summarise(num=sum(X..offenses))
-plot(sum4$num ~ sum4$Offense.Type, xlab = "Offense.Type", ylab = "Num", main = "Number of offenses per offense type")
 
 #How many offenses are made per offense type in each beat
 sum5 <- group_by(dat, Offense.Type, Beat) %>% summarise(num=sum(X..offenses))
 ```
-Some data summarization:
+
+Some data summarization (most common values):
 ```{r}
 dat %>% summarise(avg.Off=mean(dat$X..offenses),
                   cen.OffTp=centralValue(dat$Offense.Type),
                   cen.StrNm=centralValue(dat$StreetName))
 ```
 
+Frequency of crimes in the interest intervals:
 ```{r}
 barplot(c(sum(sum1$num), sum(sum2$num), sum(sum3$num)), names.arg = c("8-12", "12-19", "19-8"), main = "Total crimes over time intervals")
 ```
 
+The six beats with more crimes:
 ```{r}
 beat <- group_by(dat, Beat) %>% summarise(num=sum(X..offenses))
 most <- head(arrange(beat,desc(num)))
 barplot(most$num, names.arg=most$Beat, main="Beats with most crimes")
 ```
 
+The six beats with less crimes:
 ```{r}
 least <- head(arrange(beat, num))
 barplot(least$num, names.arg=least$Beat, main="Beats with least crimes")
 ```
 
+Distribution of number of crimes per beat:
 ```{r}
 boxplot(beat$num, main="Distribution of number of crimes per beat")
 ```
 
+Number of occurrences per crime type:
 ```{r}
 offenses <- group_by(dat, Offense.Type) %>%
   filter(Offense.Type != 1) %>% summarize(total=sum(X..offenses))
@@ -191,18 +231,20 @@ barplot(offenses$total, names.arg=offenses$Offense.Type,
         main="Number of occurences per crime type")
 ```
 
-#Third task:
+#Third Task
 
 ##Predictive modeling
-###Set a prediction task that can help police respond to their operational objective. 
 
-```{r}
-```
-
-###Use the available data to select and get a good model for this task.
+###Prediction task
 
 ```{r}
 
 ```
 
-###Give a justification for the suggested model.
+###Model
+
+```{r}
+
+```
+
+###Justification

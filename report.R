@@ -33,8 +33,6 @@ sum2 <- group_by(i2, Beat) %>% summarise(num=sum(X..offenses))
 sum3 <- group_by(i3, Beat) %>% summarise(num=sum(X..offenses))
 
 sum4 <- group_by(dat, Offense.Type) %>% summarise(num=sum(X..offenses))
-plot(sum4$num ~ sum4$Offense.Type, xlab = "Offense.Type", ylab = "Num", main = "Number of offenses (per offense)")
-
 
 sum5 <- group_by(dat, Offense.Type, Beat) %>% summarise(num=sum(X..offenses))
 
