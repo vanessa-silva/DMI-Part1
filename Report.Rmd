@@ -1,6 +1,6 @@
 ---
 title: "Report - Data Mining I"
-author: "Fábio Teixeira, Miguel Ferreira, Vanessa Silva"
+author: "F?bio Teixeira, Miguel Ferreira, Vanessa Silva"
 date: "20 de Dezembro de 2016"
 output: html_document
 ---
@@ -8,7 +8,7 @@ output: html_document
 
 This report follows the predictive analysis of a set of data on crime events in Houston, Texas, USA.
 
-This analysis is made by three fundamental tasks: data import and clean-up, data exploratory analysis and predictive modeling. The first task is to import, in an appropriate format R, the data, in order to simplify the analysis thereof, and to perform any data  clean-up and/or pre-processing steps, if necessary. The second, in presenting summaries, questions and visualizing of the data in useful ways to the police. And in the third task, a prediction task is defined, where a model and its justification are presented, which can help the police answer the question: "What will be the number of events/offenses in police beat X for the period of the day Y? "
+This analysis is made by three fundamental tasks: data import and clean-up, data?exploratory analysis and predictive modeling. The first task is to import, in an appropriate format R, the data, in order to simplify the analysis thereof, and to perform any data? clean-up and/or pre-processing steps, if necessary. The second, in presenting summaries, questions and?visualizing?of the data in useful ways to the police. And in the third task, a prediction task is defined, where a model and its justification are presented, which can help the police answer the question: "What will be the number of events/offenses in police beat X for the period of the day Y? "
 
 
 **Problema**
@@ -273,15 +273,15 @@ modelDat <- group_by(dat, FiscalDate, Beat, HourType) %>% summarize(N=sum(X..off
 ###Model
 
 ```{r}
-nn <- nnet(N ~ Beat + HourType, newdat, size=8, decay=0.1, maxit=1000)
+nn <- nnet(N ~ Beat + HourType, modelDat, size=8, decay=0.1, maxit=1000)
 
-nb <- naiveBayes(N ~ Beat + HourType, newdat)
+nb <- naiveBayes(N ~ Beat + HourType, modelDat)
 
-s <- svm(N ~ Beat + HourType, newdat)
+s <- svm(N ~ Beat + HourType, modelDat)
 
-mars <- earth(N ~ Beat + HourType, newdat)
+mars <- earth(N ~ Beat + HourType, modelDat)
 
-m <- randomForest(N ~ Beat + HourType,newdat)
+m <- randomForest(N ~ Beat + HourType, modelDat)
 ```
 
 ###Justification
