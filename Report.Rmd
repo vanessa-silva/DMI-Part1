@@ -253,6 +253,7 @@ fiscalDate <- function(arg) {
   return(as.character(ymd(date)));
 }
 
+#Identification of the time period
 hourType <- function(hour) {
   hour <- as.integer(hour)
   if (8 <= hour && hour < 12)
@@ -267,6 +268,8 @@ args <- mapply(c, dat$Hour, as.character(dat$Date), SIMPLIFY = FALSE)
 dat <- mutate(dat, HourType=sapply(Hour, hourType))
 dat <- mutate(dat, FiscalDate=sapply(args, fiscalDate))
 
+##Descriptors: Beat and HourType
+##Target variable: X..offenses
 modelDat <- group_by(dat, FiscalDate, Beat, HourType) %>% summarize(N=sum(X..offenses))
 ```
 
@@ -282,6 +285,29 @@ s <- svm(N ~ Beat + HourType, newdat)
 mars <- earth(N ~ Beat + HourType, newdat)
 
 m <- randomForest(N ~ Beat + HourType,newdat)
+```
+
+```{r}
+#Mean Squared Error
+mse <- mean((trueVals-preds)^2)
+
+#Root Mean Squared Error
+rmse <- sqrt(mse)
+
+#Mean Absolute Error
+mae <- mean(abs(trueVals-preds))
+
+#Normalized Mean Squared Error
+nmse <- sum((trueVals-preds)^2) / sum((trueVals-mean(trueVals))^2)
+
+#Normalized Mean Absolute Error
+nmae <- sum(abs(trueVals-preds)) / sum(abs(trueVals-mean(trueVals)))
+
+#Mean Average Percentage Error
+mape <- mean(abs(trueVals-preds)/trueVals)
+
+#Correlation between the predictions and the true values
+corr <- cor(trueVals,preds)
 ```
 
 ###Justification
