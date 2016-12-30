@@ -45,7 +45,7 @@ getwd()
 
 ###Import the data
 
-Note: If you do not have Perl installed on Windows, download it [here](http://www.activestate.com/activeperl/downloads). In other Operative Systems, like Linux Ubuntu, it's usual to have Perl installed.
+**Note:** If you do not have Perl installed on Windows, download it [here](http://www.activestate.com/activeperl/downloads). In other Operative Systems, like Linux Ubuntu, it's usual to have Perl installed.
 ```{r, eval=FALSE, message=FALSE, warning=FALSE, results='hide'}
 #Install the necessary packages
 install.packages("gdata")
@@ -57,6 +57,18 @@ install.packages("e1071")
 install.packages("earth")
 install.packages("rpart.plot")
 install.packages("performanceEstimation")
+```
+
+**Note:** If an error occurred, in Ubuntu, in the installation of the package "earth", run the following command in the Terminal:
+
+```shell
+sudo apt-get install liblapack-dev
+```
+
+And then, try again:
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE, results='hide'}
+install.packages("earth")
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
