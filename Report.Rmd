@@ -1,6 +1,6 @@
 ---
 title: "Report - Data Mining I"
-author: "Fadbio Teixeira, Miguel Ferreira, Vanessa Silva"
+author: "Fabio Teixeira, Miguel Ferreira, Vanessa Silva"
 date: "20 de Dezembro de 2016"
 output: html_document
 ---
