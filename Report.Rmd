@@ -56,9 +56,7 @@ install.packages("DMwR")
 install.packages("e1071")
 install.packages("earth")
 install.packages("rpart.plot")
-install.packages("randomForest")
 install.packages("performanceEstimation")
-install.packages("devtools")
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -73,11 +71,9 @@ library(class)
 library(nnet)
 library(e1071)
 library(earth)
-library(randomForest)
 library(performanceEstimation)
 library(DMwR) 
 library(rpart.plot)
-library(devtools)
 
 #The path to "perl.exe"
 perldir <- Sys.which("perl")
@@ -336,17 +332,11 @@ Let's look at the following variants:
 #Neural Networks
 (nn <- nnet(N ~ Beat + HourType, modelDat, size=8, decay=0.1, maxit=1000))
 
-#Naive Bayes
-(nb <- naiveBayes(N ~ Beat + HourType, modelDat))
-
 #SVMs
 (s <- svm(N ~ Beat + HourType, modelDat))
 
 #MARS
 (mars <- earth(N ~ Beat + HourType, modelDat))
-
-#Random Forests
-#(m <- randomForest(N ~ Beat + HourType, modelDat))
 
 #Tree-based
 (rpart <- rpartXse(N ~ Beat + HourType, modelDat))
@@ -356,16 +346,14 @@ prp(rpart,type=4,extra=101)
 
 ####Performance estimation
 
-We can collect a series of scores and provide as our estimate the average of these scores, together with the standard error of this estimate, repeating the tests 10 times.
-For this we will use the Bootstrap method.
+We can collect a series of scores and provide the average of these scores as our estimate, along with the standard error of this estimate, repeating the tests 10 times.
+To do that, we will use the Bootstrap method.
 
 ```{r}
 nreps <- 10
 scores <- list(nnet=vector("numeric",length=nreps),
-               naiveBayes=vector("numeric",length=nreps),
                svm=vector("numeric",length=nreps),
                earth=vector("numeric",length=nreps),
-               randomForest=vector("numeric",length=nreps),
                rpartXse=vector("numeric",length=nreps))
 
 n <- nrow(modelDat)
@@ -382,11 +370,7 @@ for(i in 1:nreps) {
    p <- predict(m,ts)
    # evaluation
    scores$nnet[i] <- mean((ts$N-p)^2)
-   
-   #m <- naiveBayes(N ~ Beat + HourType,tr)
-   #p <- predict(m,ts)
-   #scores$naiveBayes[i] <- mean((ts$N-p)^2)
-   
+      
    m <- svm(N ~ Beat + HourType,tr)
    p <- predict(m,ts)
    scores$svm[i] <- mean((ts$N-p)^2)
@@ -395,22 +379,15 @@ for(i in 1:nreps) {
    p <- predict(m,ts)
    scores$earth[i] <- mean(abs(ts$N-p)^2)
    
-   #m <- randomForest(N ~ Beat + HourType,tr)
-   #p <- predict(m,ts)
-   #scores$randomForest[i] <- mean((ts$N-p)^2)
-   
    m <- rpartXse(N ~ Beat + HourType,tr)
    p <- predict(m,ts)
    scores$rpartXse[i] <- mean((ts$N-p)^2)
-   
 }
 
 # calculating means and standard errors
-#summary(scores$naiveBayes)
 summary(scores$nnet)
 summary(scores$svm)
 summary(scores$earth)
-#summary(scores$randomForest)
 summary(scores$rpartXse)
 
 #performanceEstimation to estimate regression error
