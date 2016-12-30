@@ -146,3 +146,24 @@ library(DMwR)
 m <- rpartXse(N ~ Beat + HourType,tr)
 regr.eval(ts$N,p,train.y=tr$N)
 p <- predict(m,ts) 
+
+#Mean Squared Error
+#mse <- mean((trueVals-preds)^2)
+
+#Root Mean Squared Error
+#rmse <- sqrt(mse)
+
+#Mean Absolute Error
+#mae <- mean(abs(trueVals-preds))
+
+#Normalized Mean Squared Error
+#nmse <- sum((trueVals-preds)^2) / sum((trueVals-mean(trueVals))^2)
+
+#Normalized Mean Absolute Error
+#nmae <- sum(abs(trueVals-preds)) / sum(abs(trueVals-mean(trueVals)))
+
+#Mean Average Percentage Error
+#mape <- mean(abs(trueVals-preds)/trueVals)
+
+#Correlation between the predictions and the true values
+#corr <- cor(trueVals,preds)

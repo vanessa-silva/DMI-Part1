@@ -57,6 +57,7 @@ install.packages("dplyr")
 install.packages("DMwR")
 install.packages("e1071")
 install.packages("earth")
+install.packages("rpart.plot")
 install.packages("randomForest")
 install.packages("performanceEstimation")
 ```
@@ -75,6 +76,8 @@ library(e1071)
 library(earth)
 library(randomForest)
 library(performanceEstimation)
+library(DMwR) 
+library(rpart.plot)
 
 perldir <- Sys.which("perl")
 
@@ -246,6 +249,13 @@ barplot(offenses$total, names.arg=offenses$Offense.Type,
 
 ##Predictive modeling
 
+We will try to obtain, using the available data, an approximation of the unknown function $(f)$ that maps the observation descriptors into the intended conclusion, i.e. $Prediction = f(Descriptors)$.
+
+We take the `Beat` and` HourType` variables as descriptors, since we want to know the number of events/offenses in a beat and period day specifics.
+And we take as target variable the variable N of the data used for the prediction (`modelDat`) as it represents the number of events / offenses in a beat and period of the day specific, since this variable is numerical we are faced with a regression problem. 
+
+The data in `modelDat` contains a selection of the data initially provided, but modified so that it can be used more easily in the predictive analysis, this is defined below.
+
 ###Prediction task
 
 ```{r}
@@ -277,21 +287,40 @@ dat <- mutate(dat, FiscalDate=sapply(args, fiscalDate))
 modelDat <- group_by(dat, FiscalDate, Beat, HourType) %>% summarize(N=sum(X..offenses))
 ```
 
-###Model
+Our task is to get the best possible model, based on:
+
+- the given data set;
+- a certain preference criterion that allows comparing the different alternative model variants.
+
+Let's look at the following variants:
+- Probabilistic approaches: naive Bayes;
+<!-- - Sets of models (ensembles): random forests;-->
+- Other approaches: neural networks, SVMs, MARS and tree-based.
+
+###Models
 
 ```{r}
+#Neural Networks
 nn <- nnet(N ~ Beat + HourType, modelDat, size=8, decay=0.1, maxit=1000)
 
+#Naive Bayes
 nb <- naiveBayes(N ~ Beat + HourType, modelDat)
 
+#SVMs
 s <- svm(N ~ Beat + HourType, modelDat)
 
+#MARS
 mars <- earth(N ~ Beat + HourType, modelDat)
 
+#Random Forests
 #m <- randomForest(N ~ Beat + HourType, modelDat)
 
+#Tree-based
 rpart <- rpartXse(N ~ Beat + HourType, modelDat)
+prp(rpart,type=4,extra=101)
 ```
+
+####Performance estimation
 
 ```{r}
 nreps <- 10
@@ -338,6 +367,7 @@ for(i in 1:nreps) {
    scores$rpartXse[i] <- mean((ts$N-p)^2)
    
 }
+
 # calculating means and standard errors
 #summary(scores$naiveBayes)
 summary(scores$nnet)
@@ -346,30 +376,10 @@ summary(scores$earth)
 #summary(scores$randomForest)
 summary(scores$rpartXse)
 
+#performanceEstimation to estimate regression error
 res <- performanceEstimation(PredTask(N ~ Beat + HourType, modelDat, "w/o"), workflowVariants(learner=c("svm", "earth", "rpartXse")), EstimationTask(metrics = c("mse", "mae")))
 
 plot(res)
-
-#Mean Squared Error
-#mse <- mean((trueVals-preds)^2)
-
-#Root Mean Squared Error
-#rmse <- sqrt(mse)
-
-#Mean Absolute Error
-#mae <- mean(abs(trueVals-preds))
-
-#Normalized Mean Squared Error
-#nmse <- sum((trueVals-preds)^2) / sum((trueVals-mean(trueVals))^2)
-
-#Normalized Mean Absolute Error
-#nmae <- sum(abs(trueVals-preds)) / sum(abs(trueVals-mean(trueVals)))
-
-#Mean Average Percentage Error
-#mape <- mean(abs(trueVals-preds)/trueVals)
-
-#Correlation between the predictions and the true values
-#corr <- cor(trueVals,preds)
 ```
 
 ###Justification
