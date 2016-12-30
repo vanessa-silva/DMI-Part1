@@ -235,7 +235,7 @@ barplot(c(sum(sum1$num), sum(sum2$num), sum(sum3$num)), names.arg = c("8-12", "1
 
 Number of occurences per year
 ```{r}
-years <- unique(sapply(strsplit(as.character(dat$Date),"-"), function(x) x[1]))
+years <- sort(unique(sapply(strsplit(as.character(dat$Date),"-"), function(x) x[1])))
 dates <- data.frame()
 
 for(t in 1:length(years)) {
@@ -333,27 +333,30 @@ Let's look at the following variants:
 
 ```{r}
 #Neural Networks
-nn <- nnet(N ~ Beat + HourType, modelDat, size=8, decay=0.1, maxit=1000)
+(nn <- nnet(N ~ Beat + HourType, modelDat, size=8, decay=0.1, maxit=1000))
 
 #Naive Bayes
-nb <- naiveBayes(N ~ Beat + HourType, modelDat)
+(nb <- naiveBayes(N ~ Beat + HourType, modelDat))
 
 #SVMs
-s <- svm(N ~ Beat + HourType, modelDat)
+(s <- svm(N ~ Beat + HourType, modelDat))
 
 #MARS
-mars <- earth(N ~ Beat + HourType, modelDat)
+(mars <- earth(N ~ Beat + HourType, modelDat))
 
 #Random Forests
-#m <- randomForest(N ~ Beat + HourType, modelDat)
+#(m <- randomForest(N ~ Beat + HourType, modelDat))
 
 #Tree-based
-rpart <- rpartXse(N ~ Beat + HourType, modelDat)
+(rpart <- rpartXse(N ~ Beat + HourType, modelDat))
 ##Plot of the decision tree 
 prp(rpart,type=4,extra=101)
 ```
 
 ####Performance estimation
+
+We can collect a series of scores and provide as our estimate the average of these scores, together with the standard error of this estimate, repeating the tests 10 times.
+For this we will use the Bootstrap method.
 
 ```{r}
 nreps <- 10
@@ -412,7 +415,15 @@ summary(scores$rpartXse)
 #performanceEstimation to estimate regression error
 res <- performanceEstimation(PredTask(N ~ Beat + HourType, modelDat, "w/o"), workflowVariants(learner=c("svm", "earth", "rpartXse")), EstimationTask(metrics = c("mse", "mae")))
 
+summary(res)
+
+rankWorkflows(res,3)
+
 plot(res)
 ```
 
 ###Justification
+
+Based on the results obtained, the model that most reliably helps the police to respond to its operational objective is the defined in `earth` and the defined in `rpartXse`, that is, tree-based model and MARS respectively, once they produce good results.
+
+Both produce a better score, smaller means and standard errors, when compared as to the others models (`nnet` (neural networks) and `svm` (SVMs)).
