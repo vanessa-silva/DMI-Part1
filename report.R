@@ -100,7 +100,8 @@ ts <- modelDat[-sp,]
 
 #Neural Networks
 (nn <- nnet(N ~ Beat + HourType, tr, size=8, decay=0.1, maxit=1000))
-(mc <- table(predict(nn,ts),ts$N))
+preds <- predict(nn,ts)
+(mc <- table(preds,ts$N))
 
 summary(nn)
 head(predict(nn,ts))
