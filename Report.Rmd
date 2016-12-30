@@ -81,8 +81,18 @@ library(rpart.plot)
 
 perldir <- Sys.which("perl")
 
+#Data import
 fc <- "crime.xls" 
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir, na.strings = "UNK")
+
+#Dimension of data
+dim(dat)
+
+#Names of data
+names(dat)
+
+#Structure of data
+str(dat)
 
 dat$BlockRange <- as.character(dat$BlockRange)
 dat$StreetName <- as.character(dat$StreetName)
@@ -91,6 +101,7 @@ dat$Suffix <- as.character(dat$Suffix)
 ```
 
 ###Data clean-up and/or pre-processing steps necessary
+
 The Offense Types found on the data set are:
 ```{r}
 unique(dat$Offense.Type)
@@ -184,11 +195,15 @@ dat$Type[incomplete] <- centralValue(dat$Type[!incomplete])
 ##Data exploratory analysis
 
 We **summarize** and **visualize** the data in useful ways for the police.
+
 ```{r}
 dat <- tbl_df(dat)
 
 #View the data per hour
 datxts <- xts(dat, ymd_h(paste(dat$Date,' ',dat$Hour)))
+
+#Distribution of every numeric variable and frequency of every level of every categorical variables
+summary(dat)
 
 #Split the data into 3 categories
 i1 <- filter(dat, 8 <= dat$Hour, dat$Hour < 12)
@@ -205,10 +220,8 @@ sum4 <- group_by(dat, Offense.Type) %>% summarise(num=sum(X..offenses))
 
 #How many offenses are made per offense type in each beat
 sum5 <- group_by(dat, Offense.Type, Beat) %>% summarise(num=sum(X..offenses))
-```
 
-Some data summarization (most common values):
-```{r}
+#Data summarization (most common values)
 dat %>% summarise(avg.Off=mean(dat$X..offenses),
                   cen.OffTp=centralValue(dat$Offense.Type),
                   cen.StrNm=centralValue(dat$StreetName))
@@ -217,6 +230,21 @@ dat %>% summarise(avg.Off=mean(dat$X..offenses),
 Frequency of crimes in the interest intervals:
 ```{r}
 barplot(c(sum(sum1$num), sum(sum2$num), sum(sum3$num)), names.arg = c("8-12", "12-19", "19-8"), main = "Total crimes over time intervals")
+```
+
+Number of occurences per year
+```{r}
+years <- unique(sapply(strsplit(as.character(dat$Date),"-"), function(x) x[1]))
+dates <- data.frame()
+
+for(t in 1:length(years)) {
+  y <- filter(dat, sapply(strsplit(as.character(dat$Date),"-"), function(x) x[1]) == years[t])
+  total = sum(y$X..offenses)
+  line <- data.frame(Year = years[t], Total = total)
+  dates <- bind_rows(dates, line)
+}
+
+barplot(dates$Total, names.arg=dates$Year, main="Number of occurences per year")
 ```
 
 The six beats with more crimes:
@@ -232,17 +260,17 @@ least <- head(arrange(beat, num))
 barplot(least$num, names.arg=least$Beat, main="Beats with least crimes")
 ```
 
-Distribution of number of crimes per beat:
-```{r}
-boxplot(beat$num, main="Distribution of number of crimes per beat")
-```
-
 Number of occurrences per crime type:
 ```{r}
 offenses <- group_by(dat, Offense.Type) %>%
   filter(Offense.Type != 1) %>% summarize(total=sum(X..offenses))
 barplot(offenses$total, names.arg=offenses$Offense.Type,
         main="Number of occurences per crime type")
+```
+
+Distribution of number of crimes per beat:
+```{r}
+boxplot(beat$num, main="Distribution of number of crimes per beat")
 ```
 
 #Third Task
@@ -282,8 +310,6 @@ args <- mapply(c, dat$Hour, as.character(dat$Date), SIMPLIFY = FALSE)
 dat <- mutate(dat, HourType=sapply(Hour, hourType))
 dat <- mutate(dat, FiscalDate=sapply(args, fiscalDate))
 
-##Descriptors: Beat and HourType
-##Target variable: X..offenses
 modelDat <- group_by(dat, FiscalDate, Beat, HourType) %>% summarize(N=sum(X..offenses))
 ```
 
@@ -317,6 +343,7 @@ mars <- earth(N ~ Beat + HourType, modelDat)
 
 #Tree-based
 rpart <- rpartXse(N ~ Beat + HourType, modelDat)
+##Plot of the decision tree 
 prp(rpart,type=4,extra=101)
 ```
 
