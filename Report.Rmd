@@ -58,6 +58,7 @@ install.packages("earth")
 install.packages("rpart.plot")
 install.packages("randomForest")
 install.packages("performanceEstimation")
+install.packages("devtools")
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -76,10 +77,10 @@ library(randomForest)
 library(performanceEstimation)
 library(DMwR) 
 library(rpart.plot)
+library(devtools)
 
 #The path to "perl.exe"
 perldir <- Sys.which("perl")
-
 
 #Loading the file "crime.xls"
 fc <- "crime.xls" 
@@ -161,7 +162,7 @@ For each anomaly detected we have 3 options:
 Based on Hounton Police beat map, we can reconstruct manually the `Beat` cells using the street name and block range.
 ![](hpd_beat_map.png)
 
-However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column. In order to that, we built an RData file, named "**gps.RDATA**".
+However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column. In order to that, we built an RData file, named "**gps.RData**", that you should download to the working directory.
 ```{r}
 load("gps.RData")
 incomplete <- is.na(dat$Beat)
