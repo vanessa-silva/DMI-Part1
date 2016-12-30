@@ -19,7 +19,33 @@ unique(dat$Hour)
 library(lubridate)
 library(xts)
 library(dplyr)
+library(stringr)
 library(DMwR)
+library(class)
+library(nnet)
+library(e1071)
+library(earth)
+library(performanceEstimation)
+library(DMwR) 
+library(rpart.plot)
+
+load("gps.RData")
+incomplete <- is.na(dat$Beat)
+tr <- gps[!incomplete,1:2]
+ts <- gps[incomplete,1:2]
+dat$Beat[incomplete] <- knn(tr, ts, dat$Beat[!incomplete], k = 3)
+
+incomplete <- (dat$Suffix == "-")
+tr <- gps[!incomplete,1:2]
+ts <- gps[incomplete,1:2]
+dat$Suffix[incomplete] <- is.character(knn(tr, ts, dat$Suffix[!incomplete], k = 3))
+
+incomplete <- is.na(dat$BlockRange)
+dat$BlockRange[incomplete] <- centralValue(dat$BlockRange)
+
+incomplete <- (dat$Type == "-")
+dat$Type[incomplete] <- centralValue(dat$Type[!incomplete])
+
 dat <- tbl_df(dat)
 
 
@@ -36,116 +62,87 @@ sum4 <- group_by(dat, Offense.Type) %>% summarise(num=sum(X..offenses))
 
 sum5 <- group_by(dat, Offense.Type, Beat) %>% summarise(num=sum(X..offenses))
 
-
-#Data Summarization
-
-dat %>% summarise(avg.Off=mean(dat$X..offenses),
-                  cen.OffTp=centralValue(dat$Offense.Type),
-                  cen.StrNm=centralValue(dat$StreetName))
-
-
 sum1_ <- group_by(i1, Beat) %>% summarise(num=sum(X..offenses)/length(unique(i1$Date)))
 
+fiscalDate <- function(arg) {
+  date <- arg[2]
+  hour <- arg[1]
+  if (as.integer(hour) >= 0 && as.integer(hour) < 8)
+    return(as.character(ymd(date)-1));
+  return(as.character(ymd(date)));
+}
+
+#Identification of the time period
+hourType <- function(hour) {
+  hour <- as.integer(hour)
+  if (8 <= hour && hour < 12)
+    return(1)
+  if (12 <= hour && hour < 19)
+    return(2)
+  return(3)
+}
+
+args <- mapply(c, dat$Hour, as.character(dat$Date), SIMPLIFY = FALSE)
+
+dat <- mutate(dat, HourType=sapply(Hour, hourType))
+dat <- mutate(dat, FiscalDate=sapply(args, fiscalDate))
+
+modelDat <- group_by(dat, FiscalDate, Beat, HourType) %>% summarize(N=sum(X..offenses))
 
 
-#Random data division
-sp <- sample(1:nrow(dat), as.integer(nrow(dat)*0.7))
-tr <- dat[sp,]
-ts <- dat[-sp,]
-
-#Obtain a multiple linear regression model using the largest set
-library(DMwR) 
-la <- lm(X..offenses ~ Beat + HourType, tr) 
-
-#Check the diagnostic information provided for the model
-summary(la) 
-
-final_la <- step(la)
-summary(final_la) 
-
-#Obtain the predictions of the obtained model on the smaller set
-preds <- predict(la,ts)
-
-
-##Naive Bayes 
-
-library(e1071) 
+####Holdout Method
 
 #Random data division
 sp <- sample(1:nrow(modelDat), as.integer(nrow(modelDat)*0.7))
 tr <- modelDat[sp,]
 ts <- modelDat[-sp,]
 
-nb <- naiveBayes(N ~ Beat + HourType, tr) 
-nb
-#pred <- predict(nb, ts)    ##Warning message: In data.matrix(newdata) : NAs introduced by coercion??
-#(mtrx <- table(pred,ts$N))
-#(err <- 1-sum(diag(mtrx))/sum(mtrx))
-#head(predict(nb,ts,type='raw'))
 
-##with Laplace correction
-nb_ <- naiveBayes(N ~ Beat + HourType, tr, laplace=1)
-#preds_ <- predict(nb_, ts)    ##Warning message: In data.matrix(newdata) : NAs introduced by coercion??
-#(mtrx <- table(preds_,ts$N))
-#(err <- 1-sum(diag(mtrx))/sum(mtrx))
-#head(predict(nb_,ts,type='raw'))
-
-
-##SVMs
-
-s <- svm(N ~ Beat + HourType,tr) 
-preds <- predict(s,ts)
-
-ps <- predict(s,ts) 
-
-mc <- table(ps,ts$N)
-(error <- 100*(1-sum(diag(mc))/sum(mc)))
-
-
-##??-SV Regression
-
-s <- svm(N ~ Beat + HourType, tr, cost=10, epsilon=0.02) 
-preds <- predict(s,ts) 
-regr.eval(ts$N, preds)
-
-plot(ts$N, preds, main='Errors Scaterplot', ylab='Predictions', xlab='True') 
-abline(0,1,col='red',lty=2)
-
-
-##Feed-forward Multilayer ANN
-
-library(nnet)
-nn <- nnet(N ~ Beat + HourType, tr, size=8, decay=0.1, maxit=1000)
-(mtrx <- table(predict(nn,ts),ts$N))
-nn
+#Neural Networks
+(nn <- nnet(N ~ Beat + HourType, tr, size=8, decay=0.1, maxit=1000))
+(mc <- table(predict(nn,ts),ts$N))
 
 summary(nn)
 head(predict(nn,ts))
 
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+regr.eval(ts$N, preds)
 
-##MARS 
 
-library(earth) 
+##SVMs
+(s <- svm(N ~ Beat + HourType,tr))
+preds <- predict(s,ts)
 
+(mc <- table(preds,ts$N))
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+
+regr.eval(ts$N, preds)
+
+
+##MARS
 mars <- earth(N ~ Beat + HourType, tr)
 preds <- predict(mars,ts) 
 
+(mc <- table(preds,ts$N))
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+
 summary(mars)
+(mae <- mean(abs(ts$N-preds)))
 
+regr.eval(ts$N, preds)
 
-##Random Forests
-
-library(randomForest) 
-#m <- randomForest(N ~ Beat + HourType, tr)
-#preds <- predict(m,ts) 
-
-
-##Holdout 
-
-library(DMwR) 
+#Tree-based 
 m <- rpartXse(N ~ Beat + HourType,tr)
-regr.eval(ts$N,p,train.y=tr$N)
-p <- predict(m,ts) 
+preds <- predict(m,ts) 
+
+(mc <- table(preds, ts$N))
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+(mae <- mean(abs(preds-ts$N)))
+
+regr.eval(ts$N, preds)
+
+prp(m, type=4,extra=101)
+
 
 #Mean Squared Error
 #mse <- mean((trueVals-preds)^2)
