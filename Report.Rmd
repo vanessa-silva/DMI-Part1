@@ -1,25 +1,24 @@
 ---
 title: "Report - Data Mining I"
-author: "F?bio Teixeira, Miguel Ferreira, Vanessa Silva"
+author: "Fadbio Teixeira, Miguel Ferreira, Vanessa Silva"
 date: "20 de Dezembro de 2016"
 output: html_document
 ---
 <br /> 
 
-This report follows the predictive analysis of a set of data on crime events in Houston, Texas, USA.
+This report follows the predictive analysis of a data set on crime events in Houston, Texas, USA.
 
-This analysis is made by three fundamental tasks: data import and clean-up, data?exploratory analysis and predictive modeling. The first task is to import, in an appropriate format R, the data, in order to simplify the analysis thereof, and to perform any data? clean-up and/or pre-processing steps, if necessary. The second, in presenting summaries, questions and?visualizing?of the data in useful ways to the police. And in the third task, a prediction task is defined, where a model and its justification are presented, which can help the police answer the question: "What will be the number of events/offenses in police beat X for the period of the day Y? "
+This analysis is made by three fundamental tasks: data import and clean-up, data exploratory analysis and predictive modeling. The first task is to import, in an appropriate format R, the data, in order to simplify the analysis thereof, and to perform any data clean-up and/or pre-processing steps, if necessary. The second, in presenting summaries, questions and visualization of the data in ways that will be useful to the police. And in the third task, a prediction task is defined, where a model and its justification are presented, which can help the police answer the question: "What will be the number of events/offenses in police beat X for the period of the day Y?".
 
-
-**Problema**
+**The Problem**
 
 Obtain a model that helps the police to distribute its resources through the different areas of the city (policy beats).
 
-We will assume that the goal of the policy department is to allocate the resources based on the number of estimated events (of any type) for a certain area, ie your goal is to accurately estimate the number of events (offenses) that are going to occur on a certain area.
+We will assume that the goal of the policy department is to allocate the resources based on the number of estimated events (of any type) for a certain area, i.e., the goal is to accurately estimate the number of events (offenses) that are going to occur on a certain area.
 
 The police makes personel allocation decisions 3 times per day: (i) one decision for the morning period (8:00<= t < 12:00); (ii) one for the afternoon (12:00 <= t < 19:00); and the last decision for the night period (19:00 <= t < 8:00). These decisions are made for each week day and for each police beat.
 
-**Data**
+**The Data**
 
 The provided spreadsheet contains information on crime events on Houston, Texas, USA. Each row contains several information on the event.
 <br /> 
@@ -46,8 +45,7 @@ getwd()
 
 ###Import the data
 
-Note: If you do not have Perl installed on Windows, download it [here](http://www.activestate.com/activeperl/downloads).
-
+Note: If you do not have Perl installed on Windows, download it [here](http://www.activestate.com/activeperl/downloads). In other Operative Systems, like Linux Ubuntu, it's usual to have Perl installed.
 ```{r, eval=FALSE, message=FALSE, warning=FALSE, results='hide'}
 #Install the necessary packages
 install.packages("gdata")
@@ -79,8 +77,10 @@ library(performanceEstimation)
 library(DMwR) 
 library(rpart.plot)
 
+#The path to "perl.exe"
 perldir <- Sys.which("perl")
 
+#Loading the file "crime.xls"
 fc <- "crime.xls" 
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir, na.strings = "UNK")
 
@@ -91,7 +91,7 @@ dat$Suffix <- as.character(dat$Suffix)
 ```
 
 ###Data clean-up and/or pre-processing steps necessary
-The Offense Types found on the data set are:
+The offense types found on the data set are:
 ```{r}
 unique(dat$Offense.Type)
 ```
@@ -150,7 +150,7 @@ For each anomaly detected we have 3 options:
 Based on Hounton Police beat map, we can reconstruct manually the `Beat` cells using the street name and block range.
 ![](hpd_beat_map.png)
 
-However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column.
+However, using Google Maps API and Data Science Toolkit providers for the package `ggmap` we were able to obtain GPS coordinates for the locations of each crime. This allows us to reconstruct the `Beat` column using the k-nearest neighbours of the coordinates column. In order to that, we built an RData file, named "**gps.RDATA**".
 ```{r}
 load("gps.RData")
 incomplete <- is.na(dat$Beat)
@@ -183,8 +183,9 @@ dat$Type[incomplete] <- centralValue(dat$Type[!incomplete])
 
 ##Data exploratory analysis
 
-We **summarize** and **visualize** the data in useful ways for the police.
+Data **summarization** and **visualization** in ways that will be useful to the police.
 ```{r}
+##Arrange "dat" in a data frame
 dat <- tbl_df(dat)
 
 #View the data per hour
@@ -195,7 +196,7 @@ i1 <- filter(dat, 8 <= dat$Hour, dat$Hour < 12)
 i2 <- filter(dat, 12 <= dat$Hour, dat$Hour < 19)
 i3 <- filter(dat, (19 <= dat$Hour & dat$Hour <= 23) | (0 <= dat$Hour & dat$Hour < 8))
 
-#How many Offenses are made per interval in each category
+#How many offenses are made per interval in each category
 sum1 <- group_by(i1, Beat) %>% summarise(num=sum(X..offenses))
 sum2 <- group_by(i2, Beat) %>% summarise(num=sum(X..offenses))
 sum3 <- group_by(i3, Beat) %>% summarise(num=sum(X..offenses))
@@ -214,30 +215,30 @@ dat %>% summarise(avg.Off=mean(dat$X..offenses),
                   cen.StrNm=centralValue(dat$StreetName))
 ```
 
-Frequency of crimes in the interest intervals:
+Frequency of offenses in the interest intervals:
 ```{r}
 barplot(c(sum(sum1$num), sum(sum2$num), sum(sum3$num)), names.arg = c("8-12", "12-19", "19-8"), main = "Total crimes over time intervals")
 ```
 
-The six beats with more crimes:
+The six beats with more offenses:
 ```{r}
 beat <- group_by(dat, Beat) %>% summarise(num=sum(X..offenses))
 most <- head(arrange(beat,desc(num)))
 barplot(most$num, names.arg=most$Beat, main="Beats with most crimes")
 ```
 
-The six beats with less crimes:
+The six beats with less offenses:
 ```{r}
 least <- head(arrange(beat, num))
 barplot(least$num, names.arg=least$Beat, main="Beats with least crimes")
 ```
 
-Distribution of number of crimes per beat:
+Distribution of number of offenses per beat:
 ```{r}
 boxplot(beat$num, main="Distribution of number of crimes per beat")
 ```
 
-Number of occurrences per crime type:
+Number of occurrences per offense type:
 ```{r}
 offenses <- group_by(dat, Offense.Type) %>%
   filter(Offense.Type != 1) %>% summarize(total=sum(X..offenses))
@@ -251,18 +252,18 @@ barplot(offenses$total, names.arg=offenses$Offense.Type,
 
 We will try to obtain, using the available data, an approximation of the unknown function $(f)$ that maps the observation descriptors into the intended conclusion, i.e. $Prediction = f(Descriptors)$.
 
-We take the `Beat` and` HourType` variables as descriptors, since we want to know the number of events/offenses in a beat and period day specifics.
-And we take as target variable the variable N of the data used for the prediction (`modelDat`) as it represents the number of events / offenses in a beat and period of the day specific, since this variable is numerical we are faced with a regression problem. 
+We take the `Beat` and `HourType` variables as descriptors, since we want to know the number of events/offenses in a beat and period day specifics.
+And we take as target variable the variable N of the data used for the prediction (`modelDat`) as it represents the number of events/offenses in a beat and period day specifics, since this variable is numerical and we are faced with a regression problem. 
 
-The data in `modelDat` contains a selection of the data initially provided, but modified so that it can be used more easily in the predictive analysis, this is defined below.
+The data in `modelDat` contains a selection of the data initially provided, but modified so that it can be used more easily in the predictive analysis.
 
 ###Prediction task
 
 ```{r}
 fiscalDate <- function(arg) {
   date <- arg[2]
-  hour <- arg[1]
-  if (as.integer(hour) >= 0 && as.integer(hour) < 8)
+----  hour <- arg[1]
+  if- (as.integer(hour) >= 0 && as.integer(hour) < 8)
     return(as.character(ymd(date)-1));
   return(as.character(ymd(date)));
 }
