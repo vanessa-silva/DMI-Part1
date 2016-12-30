@@ -328,20 +328,52 @@ Let's look at the following variants:
 
 ###Models
 
+####Holdout Method
+
 ```{r}
+#Random data division
+sp <- sample(1:nrow(modelDat), as.integer(nrow(modelDat)*0.7))
+tr <- modelDat[sp,]
+ts <- modelDat[-sp,]
+
 #Neural Networks
-(nn <- nnet(N ~ Beat + HourType, modelDat, size=8, decay=0.1, maxit=1000))
+(nn <- nnet(N ~ Beat + HourType, tr, size=8, decay=0.1, maxit=1000))
+preds <- predict(nn,ts)
+mc <- table(preds,ts$N)
+
+summary(nn)
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+regr.eval(ts$N, preds)
 
 #SVMs
-(s <- svm(N ~ Beat + HourType, modelDat))
+(s <- svm(N ~ Beat + HourType,tr))
+preds <- predict(s,ts)
+mc <- table(preds,ts$N)
+
+summary(s)
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+regr.eval(ts$N, preds)
 
 #MARS
-(mars <- earth(N ~ Beat + HourType, modelDat))
+mars <- earth(N ~ Beat + HourType, tr)
+preds <- predict(mars,ts)
+mc <- table(preds,ts$N)
+
+summary(mars)
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+regr.eval(ts$N, preds)
 
 #Tree-based
-(rpart <- rpartXse(N ~ Beat + HourType, modelDat))
+rpart <- rpartXse(N ~ Beat + HourType,tr)
+preds <- predict(rpart,ts) 
+mc <- table(preds, ts$N)
+
+summary(rpart)
+(error <- 100*(1-sum(diag(mc))/sum(mc)))
+regr.eval(ts$N, preds)
+
 ##Plot of the decision tree 
-prp(rpart,type=4,extra=101)
+prp(rpart, type=4,extra=101)
 ```
 
 ####Performance estimation
