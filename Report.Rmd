@@ -156,22 +156,24 @@ ts <- gps[incomplete,1:2]
 dat$Beat[incomplete] <- knn(tr, ts, dat$Beat[!incomplete], k = 3)
 ```
 
-To solve of the anomalies in `BlockRange` column, we replaced the invalid cells for the central value of the:
+We proceed in the same way to reconstruct (solving the anomalies) the `Suffix` column.
+```{r}
+incomplete <- (dat$Suffix == "-")
+tr <- gps[!incomplete,1:2]
+ts <- gps[incomplete,1:2]
+dat$Suffix[incomplete] <- is.character(knn(tr, ts, dat$Suffix[!incomplete], k = 3))
+```
+
+To solve of the anomalies in `BlockRange` column, we replaced the invalid cells for the central value.
 ```{r}
 incomplete <- is.na(dat$BlockRange)
 dat$BlockRange[incomplete] <- centralValue(dat$BlockRange)
 ```
 
-To solve of the anomalies in `Type` column, we replaced the invalid cells for the central value of the:
+We proceed in the same way to solve of the anomalies in `Type` column.
 ```{r}
-incomplete <- is.na(dat$Type)
-dat$Type[incomplete] <- centralValue(dat$Type)
-```
-
-To solve of the anomalies in `Suffix` column, we replaced the invalid cells for the central value of the:
-```{r}
-incomplete <- is.na(dat$Suffix)
-#... see on GPS?
+incomplete <- (dat$Type == "-")
+dat$Type[incomplete] <- centralValue(dat$Type[!incomplete])
 ```
 
 #Second Task
