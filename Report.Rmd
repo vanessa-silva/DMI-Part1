@@ -58,6 +58,7 @@ install.packages("earth")
 install.packages("rpart.plot")
 install.packages("randomForest")
 install.packages("performanceEstimation")
+install.packages("devtools")
 ```
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
@@ -76,6 +77,11 @@ library(randomForest)
 library(performanceEstimation)
 library(DMwR) 
 library(rpart.plot)
+library(devtools)
+
+##Install and load special package
+install_github("ltorgo/performanceEstimation",ref="develop")
+library(performanceEstimation)
 
 #The path to "perl.exe"
 perldir <- Sys.which("perl")
