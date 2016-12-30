@@ -405,3 +405,7 @@ plot(res)
 Based on the results obtained, the model that most reliably helps the police to respond to its operational objective is the defined in `earth` and the defined in `rpartXse`, that is, tree-based model and MARS respectively, once they produce good results.
 
 Both produce a better score, smaller means and standard errors, when compared as to the others models (`nnet` (neural networks) and `svm` (SVMs)).
+
+Multivariate Adaptive Regression Splines, also known as MARS, is a model that takes the form of an expansion in product spline basis functions, where the number of basic functions as well as the parameters associated with each one are automatically determined by the data. MARS builds models in two phases: the forward and backward passes and has more power and flexibility to model relationships that are nearly additive or involve interactions in at most a few variables.
+
+Tree based models is one of the best and mostly used learning methods. It empowers predictive models with high accuracy, stability and ease of interpretation. Unlike linear models, they map non-linear relationships quite well. They are adaptable at solving any kind of problem at hand (classification or regression), so it’s not a surprise that good results were obtained. 
