@@ -80,11 +80,8 @@ library(rpart.plot)
 #The path to "perl.exe"
 perldir <- Sys.which("perl")
 
-<<<<<<< HEAD
-#Data import
-=======
+
 #Loading the file "crime.xls"
->>>>>>> d3b0a82851eca5d307aca92f025ae666ad593ca5
 fc <- "crime.xls" 
 dat <- read.xls(fc, sheet = 1, header = TRUE, verbose=FALSE, perl=perldir, na.strings = "UNK")
 
@@ -104,12 +101,8 @@ dat$Suffix <- as.character(dat$Suffix)
 ```
 
 ###Data clean-up and/or pre-processing steps necessary
-<<<<<<< HEAD
 
-The Offense Types found on the data set are:
-=======
 The offense types found on the data set are:
->>>>>>> d3b0a82851eca5d307aca92f025ae666ad593ca5
 ```{r}
 unique(dat$Offense.Type)
 ```
@@ -201,12 +194,8 @@ dat$Type[incomplete] <- centralValue(dat$Type[!incomplete])
 
 ##Data exploratory analysis
 
-<<<<<<< HEAD
-We **summarize** and **visualize** the data in useful ways for the police.
-
-=======
 Data **summarization** and **visualization** in ways that will be useful to the police.
->>>>>>> d3b0a82851eca5d307aca92f025ae666ad593ca5
+
 ```{r}
 ##Arrange "dat" in a data frame
 dat <- tbl_df(dat)
@@ -241,10 +230,9 @@ dat %>% summarise(avg.Off=mean(dat$X..offenses),
 
 Frequency of offenses in the interest intervals:
 ```{r}
-barplot(c(sum(sum1$num), sum(sum2$num), sum(sum3$num)), names.arg = c("8-12", "12-19", "19-8"), main = "Total crimes over time intervals")
+barplot(c(sum(sum1$num), sum(sum2$num), sum(sum3$num)), names.arg = c("8-12", "12-19", "19-8"), main = "Total offenses over time intervals")
 ```
 
-<<<<<<< HEAD
 Number of occurences per year
 ```{r}
 years <- unique(sapply(strsplit(as.character(dat$Date),"-"), function(x) x[1]))
@@ -260,42 +248,35 @@ for(t in 1:length(years)) {
 barplot(dates$Total, names.arg=dates$Year, main="Number of occurences per year")
 ```
 
-The six beats with more crimes:
-=======
 The six beats with more offenses:
->>>>>>> d3b0a82851eca5d307aca92f025ae666ad593ca5
 ```{r}
 beat <- group_by(dat, Beat) %>% summarise(num=sum(X..offenses))
 most <- head(arrange(beat,desc(num)))
-barplot(most$num, names.arg=most$Beat, main="Beats with most crimes")
+barplot(most$num, names.arg=most$Beat, main="Beats with most offenses")
 ```
 
 The six beats with less offenses:
 ```{r}
 least <- head(arrange(beat, num))
-barplot(least$num, names.arg=least$Beat, main="Beats with least crimes")
+barplot(least$num, names.arg=least$Beat, main="Beats with least offenses")
 ```
 
-<<<<<<< HEAD
-Number of occurrences per crime type:
-=======
 Distribution of number of offenses per beat:
 ```{r}
-boxplot(beat$num, main="Distribution of number of crimes per beat")
+boxplot(beat$num, main="Distribution of number of offenses per beat")
 ```
 
 Number of occurrences per offense type:
->>>>>>> d3b0a82851eca5d307aca92f025ae666ad593ca5
 ```{r}
 offenses <- group_by(dat, Offense.Type) %>%
   filter(Offense.Type != 1) %>% summarize(total=sum(X..offenses))
 barplot(offenses$total, names.arg=offenses$Offense.Type,
-        main="Number of occurences per crime type")
+        main="Number of occurences per offenses type")
 ```
 
-Distribution of number of crimes per beat:
+Distribution of number of offenses per beat:
 ```{r}
-boxplot(beat$num, main="Distribution of number of crimes per beat")
+boxplot(beat$num, main="Distribution of number of offenses per beat")
 ```
 
 #Third Task
@@ -314,8 +295,8 @@ The data in `modelDat` contains a selection of the data initially provided, but 
 ```{r}
 fiscalDate <- function(arg) {
   date <- arg[2]
-----  hour <- arg[1]
-  if- (as.integer(hour) >= 0 && as.integer(hour) < 8)
+  hour <- arg[1]
+  if (as.integer(hour) >= 0 && as.integer(hour) < 8)
     return(as.character(ymd(date)-1));
   return(as.character(ymd(date)));
 }
