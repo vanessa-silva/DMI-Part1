@@ -295,7 +295,7 @@ boxplot(beat$num, main="Distribution of number of offenses per beat")
 We will try to obtain, using the available data, an approximation of the unknown function $(f)$ that maps the observation descriptors into the intended conclusion, i.e. $Prediction = f(Descriptors)$.
 
 We take the `Beat` and `HourType` variables as descriptors, since we want to know the number of events/offenses in a beat and period day specifics.
-And we take as target variable the variable N of the data used for the prediction (`modelDat`) as it represents the number of events/offenses in a beat and period day specifics, since this variable is numerical and we are faced with a regression problem. 
+And we take as target variable the variable N of the data used for the prediction (`modelDat`) as it represents the number of events/offenses in a beat and period day specifics, since this variable is numerical we are faced with a regression problem. 
 
 The data in `modelDat` contains a selection of the data initially provided, but modified so that it can be used more easily in the predictive analysis.
 
@@ -335,7 +335,6 @@ Our task is to get the best possible model, based on:
 
 Let's look at the following variants:
 - Probabilistic approaches: naive Bayes;
-<!-- - Sets of models (ensembles): random forests;-->
 - Other approaches: neural networks, SVMs, MARS and tree-based.
 
 ###Models
@@ -388,7 +387,7 @@ regr.eval(ts$N, preds)
 prp(rpart, type=4,extra=101)
 ```
 
-####Performance estimation
+####Bootstrap Method and Performance estimatio
 
 We can collect a series of scores and provide the average of these scores as our estimate, along with the standard error of this estimate, repeating the tests 10 times.
 To do that, we will use the Bootstrap method.
@@ -448,8 +447,18 @@ plot(res)
 
 Based on the results obtained, the model that most reliably helps the police to respond to its operational objective is the defined in `earth` and the defined in `rpartXse`, that is, tree-based model and MARS respectively, once they produce good results.
 
-Both produce a better score, smaller means and standard errors, when compared as to the others models (`nnet` (neural networks) and `svm` (SVMs)).
+As we can see, our predictive analysis involved the analysis of four predictive models, one based on neural networks (`nnet`), one on Support Vector Machines (`svm`), another on Multivariate Adaptive Regression Splines (`earth`) and other tree-based (`rpartXse`).
+
+Initially we performed a test involving the Holdout method that consists on randomly dividing the available data sample in two sub-sets, one used for training the model and the other for testing/evaluating it. The used proportion for training was 70% and for testing was 30%.
+
+For each one the confusion matrix was made, the summary of the respective model was analyzed, the error rate of the matrix was calculated and, with the help of the function `regr.eval`, a series of regression evaluation statistics using the true target variable values and the predicted target variable values.
+Analisando e comparando cada um dos valores obtido, concluímos que os modelos mencionados (tree-based model and MARS) são os que apresentam melhores resultados, ou seja, apresentam taxas de erros das matrizes mais baixas que os outros modelos, sendo ainda que o tree-based model tem menor taxa de erro que o MARS, e as egression evaluation statistics (mean absolute error, mean squared error, root mean squared error e mean average percentage error) também são melhores nos modelos mencionados.
+
+In a second phase, we performed a test involving the Bootstrap method that consists of training models on a random sample with replacement from the original data set and test multiple times the models on the cases that were not used on the training set and calculate the average of the scores on these repetitions (Bootstrap estimate).
+We checked the summary of the different results obtained with the help of the `performanceEstimation` function that performs comparative experiments of the different models, we obtain a plot with cross validation performance estimation results.
+
+With these values and the observation of the resulting plot, we can also conclude that the models with the best results are those already mentioned.
 
 Multivariate Adaptive Regression Splines, also known as MARS, is a model that takes the form of an expansion in product spline basis functions, where the number of basic functions as well as the parameters associated with each one are automatically determined by the data. MARS builds models in two phases: the forward and backward passes and has more power and flexibility to model relationships that are nearly additive or involve interactions in at most a few variables.
 
-Tree based models are one of the best and most used learning methods. They empower predictive models with high accuracy, stability and ease of interpretation. Tree based models are also adaptable at solving any kind of problem at hand (classification or regression), so itâ€™s not a surprise that good results were obtained. 
+Tree based models are one of the best and most used learning methods. They empower predictive models with high accuracy, stability and ease of interpretation. Tree based models are also adaptable at solving any kind of problem at hand (classification or regression), so it's not a surprise that good results were obtained. 
